@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 
 
@@ -6,7 +6,8 @@ namespace Test
 {
     class Program
     {
-        static char[] chars = { '@', '%', '#', '*', '!', '.' ,' ' };
+        static char[] shades = { ' ', '.', ',', '!', '*', '#', '%' ,'@' };
+        const int yTargetResolution = 68;
 
         static void Main(string[] args)
         {
@@ -19,13 +20,17 @@ namespace Test
                 int imHeight = image.Height;
                 string pixels = "";
 
-                for (int y = 0; y < imHeight - 1; y++)
+                float yStep = (float)imHeight / yTargetResolution;
+                int xAdaptiveResolution = (int)((float)imWidth / (float)imHeight * (float)yTargetResolution * 1.94f);
+                float xStep = (float)imWidth / xAdaptiveResolution;
+
+                for (int y = 0; y < yTargetResolution - 1; y++)
                 {
                     pixels = "";
-                    for (int x = 0; x < imWidth - 1; x++)
+                    for (int x = 0; x < xAdaptiveResolution - 1; x++)
                     {
-                        pixelColor = image.GetPixel(x, y);
-                        pixels += chars[(int)MathF.Round(MathF.Max(pixelColor.R, MathF.Max(pixelColor.G, pixelColor.B)) / 255 * (chars.Length - 1))];
+                        pixelColor = image.GetPixel((int)(x * xStep), (int)(y * yStep));
+                        pixels += shades[(int)MathF.Round(MathF.Max(pixelColor.R, MathF.Max(pixelColor.G, pixelColor.B)) / 255 * (shades.Length - 1))];
                     }
                     Console.WriteLine(pixels);
                 }
