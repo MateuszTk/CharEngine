@@ -49,7 +49,7 @@ public:
     void Update() override
     {
         float speed = 1;
-        cpos.x += speed * deltaTime;
+        cpos.x = 8000;//speed * deltaTime;
         int d = 84 * 100;
         int segments = 3;
 

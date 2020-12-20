@@ -71,10 +71,12 @@ namespace objLoader
         {
             Actor act;
             *(act.getName()) = "defaultxyz";
-            vector<Vector3> vertices;
             Vector3 vertex = Vector3(0,0,0);
-            Triangle tri;
+            pTriangle tri;
+            Vertex vert;
+            vector<Vertex>* vertices;
             int xyz = 0;
+            int vertCount = 0;
 
             while (getline(fileo, line))
             {
@@ -86,16 +88,21 @@ namespace objLoader
                         actors.push_back(act);
                         names.push_back(*(act.getName()));
                     }
-                    act.getGeometry()->clear();
+                    act.getTriangles()->clear();
+                    vertCount += act.getVertices()->size();
+                    act.getVertices()->clear();
                     *(act.getName()) = actorName + "_" + line.substr(2, line.length() - 1);
                     break;
 
                 case 'v':
                     xyz = 0;
-                    vertex.x = getNext(&xyz, &line);
-                    vertex.y = getNext(&xyz, &line);
-                    vertex.z = getNext(&xyz, &line);
-                    vertices.push_back(vertex);
+                    vert.raw.x = getNext(&xyz, &line);
+                    vert.raw.y = getNext(&xyz, &line);
+                    vert.raw.z = getNext(&xyz, &line);
+                    vert.transformed.x = 0;
+                    vert.transformed.y = 0;
+                    vert.transformed.z = 0;
+                    act.getVertices()->push_back(vert);
                     //cout << vertex.x << " " << vertex.y << " " << vertex.z << '\n';
                     break;
 
@@ -105,12 +112,13 @@ namespace objLoader
                     vertex.y = getNext(&xyz, &line);
                     vertex.z = getNext(&xyz, &line);
 
-                    tri.v1 = vertices[vertex.y - 1.0f];
-                    tri.v2 = vertices[vertex.x - 1.0f];
-                    tri.v3 = vertices[vertex.z - 1.0f];
+                    //vertices = act.getVertices();
+                    tri.v1 = vertex.y - 1 - vertCount;
+                    tri.v2 = vertex.x - 1 - vertCount;
+                    tri.v3 = vertex.z - 1 - vertCount;//&((*vertices)[vertex.z - 1.0f].raw);
                     
 
-                    act.getGeometry()->push_back(tri);
+                    act.getTriangles()->push_back(tri);
                     //cout << vertex.x << " " << vertex.y << " " << vertex.z << '\n';
                     break;
 

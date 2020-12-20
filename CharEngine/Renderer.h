@@ -20,7 +20,7 @@ public:
 
     static void render()
     {
-        vector<Triangle> geom;
+        vector<pTriangle> tria;
         vector<Actor*> passActors;
         Vector3* pos;
         Material* mat;
@@ -35,31 +35,13 @@ public:
             mat = act->getMaterial();
             if (mat->transparency == 0.0f)
             {
-                geom = *(act->getGeometry());
+                tria = *(act->getTriangles());
                 pos = act->getPosition();
+                TranslateMesh(act->getVertices(), pos);
 
-                for (Triangle tri : geom)
+                for (pTriangle tri : tria)
                 {
-                    tri.v1.x += pos->x;
-                    tri.v1.y += pos->y;
-                    tri.v1.z += pos->z;
-
-                    tri.v2.x += pos->x;
-                    tri.v2.y += pos->y;
-                    tri.v2.z += pos->z;
-
-                    tri.v3.x += pos->x;
-                    tri.v3.y += pos->y;
-                    tri.v3.z += pos->z;
-
-                    c1 = mat->color;
-                    c2 = mat->color;
-                    c3 = mat->color;
-
-                    tri.vertexColor1 = c1;
-                    tri.vertexColor2 = c2;
-                    tri.vertexColor3 = c3;
-                    tdTriangle(&tri, 0.0f);
+                    tdTriangle(pTriangle2Triangle(&tri, act->getVertices(), mat->color), 0.0f);
                 }
             }
             else
@@ -72,31 +54,13 @@ public:
         {
             mat = (*act)->getMaterial();
 
-            geom = *((*act)->getGeometry());
+            tria = *((*act)->getTriangles());
             pos = (*act)->getPosition();
+            TranslateMesh((*act)->getVertices(), pos);
 
-            for (Triangle tri : geom)
-            {
-                tri.v1.x += pos->x;
-                tri.v1.y += pos->y;
-                tri.v1.z += pos->z;
-
-                tri.v2.x += pos->x;
-                tri.v2.y += pos->y;
-                tri.v2.z += pos->z;
-
-                tri.v3.x += pos->x;
-                tri.v3.y += pos->y;
-                tri.v3.z += pos->z;
-
-                c1 = mat->color;
-                c2 = mat->color;
-                c3 = mat->color;
-
-                tri.vertexColor1 = c1;
-                tri.vertexColor2 = c2;
-                tri.vertexColor3 = c3;
-                tdTriangle(&tri, mat->transparency);
+            for (pTriangle tri : tria)
+            {            
+                tdTriangle(pTriangle2Triangle(&tri, (*act)->getVertices(), mat->color), mat->transparency);
             }
         }
     }
@@ -105,6 +69,18 @@ public:
 
 protected:
     
+    static Triangle pTriangle2Triangle(pTriangle* ptriangle, vector<Vertex>* vertices, Color color)
+    {
+        Triangle tri;
+        tri.v1 = (*vertices)[ptriangle->v1].transformed;
+        tri.v2 = (*vertices)[ptriangle->v2].transformed;
+        tri.v3 = (*vertices)[ptriangle->v3].transformed;
+        tri.vertexColor1 = color;
+        tri.vertexColor2 = color;
+        tri.vertexColor3 = color;
+        return tri;
+    }
+
     static Vector2* rotate2(float x, float y, float angle)
     {
         return &Vector2(x * cos(angle) + y * sin(angle), y * cos(angle) - x * sin(angle));
@@ -125,30 +101,35 @@ protected:
         return &coord;
     }
 
-    static Vector3* TdToScreen(float x, float y, float z)
+    static Vector3 TdToScreen(float x, float y, float z)
     {
 
-        Vector3* rotated = rotate(x, y, z);
-        float multiplier = 0.5f * width / (((float)rotated->z + (float)dist) * fov);
-        rotated->x *= multiplier;
-        rotated->y *= multiplier;
+        Vector3 rotated = *rotate(x, y, z);
+        float multiplier = 0.5f * width / (((float)rotated.z + (float)dist) * fov);
+        rotated.x *= multiplier;
+        rotated.y *= multiplier;
         return rotated;
     }
 
-
-    static void tdTriangle(Triangle* triangle, float transparency)
+    static void TranslateMesh(std::vector<Vertex>* vertices, Vector3* position)
     {
-        Vector3 p1v = *TdToScreen(triangle->v1.x + cameraPosition.x, triangle->v1.y + cameraPosition.y, triangle->v1.z + cameraPosition.z);
-        Vector3 p2v = *TdToScreen(triangle->v2.x + cameraPosition.x, triangle->v2.y + cameraPosition.y, triangle->v2.z + cameraPosition.z);
-        Vector3 p3v = *TdToScreen(triangle->v3.x + cameraPosition.x, triangle->v3.y + cameraPosition.y, triangle->v3.z + cameraPosition.z);
+        auto end = std::end(*vertices);
+        for (auto vertex = std::begin(*vertices); vertex != end; ++vertex)
+        {
+            vertex->transformed = TdToScreen(vertex->raw.x + cameraPosition.x + position->x, vertex->raw.y + cameraPosition.y + position->y, vertex->raw.z + cameraPosition.z + position->z);
+        }
+    }
 
+
+    static void tdTriangle(Triangle triangle, float transparency)
+    {
         float factor = 255.0f / farMax;
 
-        p1v.z = (p1v.z + dist) * factor;
-        p2v.z = (p2v.z + dist) * factor;
-        p3v.z = (p3v.z + dist) * factor;
+        triangle.v1.z = (triangle.v1.z + dist) * factor;
+        triangle.v2.z = (triangle.v2.z + dist) * factor;
+        triangle.v3.z = (triangle.v3.z + dist) * factor;
 
-        Screen::DrawTriangle(p1v, p2v, p3v, (triangle->vertexColor1), (triangle->vertexColor2), (triangle->vertexColor3), transparency);
+        Screen::DrawTriangle(triangle.v1, triangle.v2, triangle.v3, (triangle.vertexColor1), (triangle.vertexColor2), (triangle.vertexColor3), transparency);
 
         //debug
         //putText(image, to_string(p3v.z), *Screen::PosToScreenCenter(&Point(p3v.x, p3v.y)), FONT_HERSHEY_SIMPLEX, 0.5f, Scalar(255, 255, 255), 1);

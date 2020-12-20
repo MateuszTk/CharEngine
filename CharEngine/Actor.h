@@ -6,15 +6,21 @@
 class Actor
 {
 private:
-    std::vector<Triangle> geometry;
+    std::vector<pTriangle> triangles;
+    std::vector<Vertex> vertices;
     Vector3 position = Vector3(0, 0, 0);
     std::string name;
     Material material;
 
 public:
-    std::vector<Triangle>* getGeometry()
+    std::vector<pTriangle>* getTriangles()
     {
-        return &geometry;
+        return &triangles;
+    }
+
+    std::vector<Vertex>* getVertices()
+    {
+        return &vertices;
     }
 
     Vector3* getPosition()
@@ -58,7 +64,7 @@ public:
         }
     }
 
-    static Actor createCube(Vector3 pos, Material* mat)
+    /*static Actor createCube(Vector3 pos, Material* mat)
     {
         Actor actor;
         *(actor.getPosition()) = pos;
@@ -130,5 +136,5 @@ public:
         actor.getGeometry()->push_back(tri);
 
         return actor;
-    }
+    }*/
 };

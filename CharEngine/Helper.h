@@ -134,6 +134,19 @@ const int channels = 3;
         Color vertexColor3 = Color(255, 255, 255);
     };
 
+    struct pTriangle
+    {
+        int v1;
+        int v2;
+        int v3;
+    };
+
+    struct Vertex
+    {
+        Vector3 raw = Vector3(0,0,0);
+        Vector3 transformed = Vector3(0, 0, 0);
+    };
+
     struct Material
     {
         std::string name;
