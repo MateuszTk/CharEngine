@@ -41,7 +41,7 @@ public:
 
                 for (pTriangle tri : tria)
                 {
-                    tdTriangle(pTriangle2Triangle(&tri, act->getVertices(), mat->color), 0.0f);
+                    tdTriangle(pTriangle2Triangle(&tri, act->getVertices(), mat->color), 0.0f, &(mat->texture));
                 }
             }
             else
@@ -60,7 +60,7 @@ public:
 
             for (pTriangle tri : tria)
             {            
-                tdTriangle(pTriangle2Triangle(&tri, (*act)->getVertices(), mat->color), mat->transparency);
+                tdTriangle(pTriangle2Triangle(&tri, (*act)->getVertices(), mat->color), mat->transparency, &(mat->texture));
             }
         }
     }
@@ -78,6 +78,9 @@ protected:
         tri.vertexColor1 = color;
         tri.vertexColor2 = color;
         tri.vertexColor3 = color;
+        tri.uv1 = ptriangle->uv1;
+        tri.uv2 = ptriangle->uv2;
+        tri.uv3 = ptriangle->uv3;
         return tri;
     }
 
@@ -121,7 +124,7 @@ protected:
     }
 
 
-    static void tdTriangle(Triangle triangle, float transparency)
+    static void tdTriangle(Triangle triangle, float transparency, Mat* texture)
     {
         float factor = 255.0f / farMax;
 
@@ -129,7 +132,7 @@ protected:
         triangle.v2.z = (triangle.v2.z + dist) * factor;
         triangle.v3.z = (triangle.v3.z + dist) * factor;
 
-        Screen::DrawTriangle(triangle.v1, triangle.v2, triangle.v3, (triangle.vertexColor1), (triangle.vertexColor2), (triangle.vertexColor3), transparency);
+        Screen::DrawTriangle(triangle.v1, triangle.v2, triangle.v3, (triangle.vertexColor1), (triangle.vertexColor2), (triangle.vertexColor3), transparency, texture, triangle.uv1, triangle.uv2, triangle.uv3);
 
         //debug
         //putText(image, to_string(p3v.z), *Screen::PosToScreenCenter(&Point(p3v.x, p3v.y)), FONT_HERSHEY_SIMPLEX, 0.5f, Scalar(255, 255, 255), 1);

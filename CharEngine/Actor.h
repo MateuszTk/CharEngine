@@ -68,8 +68,18 @@ public:
     {
         Actor actor;
         *(actor.getPosition()) = pos;
-        Triangle tri;
+        pTriangle tri;
         actor.material = *mat;
+
+        Vertex vert;
+        vert.raw.UpdateV(-1, -1, -1);
+        actor.getVertices()->push_back(vert);
+        vert.raw.UpdateV(-1, -1, -1);
+        actor.getVertices()->push_back(vert);
+        vert.raw.UpdateV(-1, -1, -1);
+        actor.getVertices()->push_back(vert);
+        vert.raw.UpdateV(-1, -1, -1);
+        actor.getVertices()->push_back(vert);
 
         tri.v1.UpdateV(-1, -1, 1);
         tri.v2.UpdateV(-1, 1, 1);

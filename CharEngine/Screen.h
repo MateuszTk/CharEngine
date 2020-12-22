@@ -51,6 +51,14 @@ public:
 		image.data[point->y * width * channels + point->x * channels + 2] = (uchar)(((float)(image.data[point->y * width * channels + point->x * channels + 2]) - color->R) * color->A + color->R);
 	}
 
+	static void GetPixelColor(Point* point, ColorA* color, int cn, Mat* im)
+	{
+		//PosToScreenCenter(&point);
+		color->B = im->data[point->y * im->rows * cn + point->x * cn];
+		color->G = im->data[point->y * im->rows * cn + point->x * cn + 1];
+		color->R = im->data[point->y * im->rows * cn + point->x * cn + 2];
+	}
+
 	static void PrintFrame()
 	{
 		imshow("Display window", image);
@@ -79,7 +87,7 @@ public:
 		fill_n(&depth[0][0], width * height, 255);
 	}
 
-	static void DrawTriangle(Vector3 v0, Vector3 v1, Vector3 v2, Color c0, Color c1, Color c2, float transparency)
+	static void DrawTriangle(Vector3 v0, Vector3 v1, Vector3 v2, Color c0, Color c1, Color c2, float transparency, Mat* texture, Vector2 uv0, Vector2 uv1, Vector2 uv2)
 	{
 		if (v0.z <= clipNear || v1.z <= clipNear || v2.z <= clipNear || v0.z > farMax || v1.z > farMax || v2.z > farMax)
 			return;
@@ -137,7 +145,24 @@ public:
 			c0 *= specularity;
 			c1 *= specularity;
 			c2 *= specularity;
+			
 			void (*pixel_placer)(Point*, ColorA*) = (transparency == 0.0f) ? &SetPixelColor : &MixPixelColor;
+
+			// divide vertex-attribute by the vertex z-coordinate
+			c0.R /= v0.z, c0.G /= v0.z, c0.B /= v0.z;
+			c1.R /= v1.z, c1.G /= v1.z, c1.B /= v1.z;
+			c2.R /= v2.z, c2.G /= v2.z, c2.B /= v2.z;
+
+			//Vector2 uv0(0,0), uv1(1,0), uv2(0,1);
+			uv0.x /= v0.z, uv0.y /= v0.z;
+			uv1.x /= v1.z, uv1.y /= v1.z;
+			uv2.x /= v2.z, uv2.y /= v2.z;
+
+			// pre-compute 1 over z
+			v0.z = 1 / v0.z, v1.z = 1 / v1.z, v2.z = 1 / v2.z;
+
+			int cn = texture->channels();
+			bool mode = !texture->empty();
 
 			for (int x = bbmin.x; x <= bbmax.x; x++)
 			{
@@ -162,14 +187,26 @@ public:
 						e1 /= area;
 						e2 /= area;
 						e3 /= area;
-						depthl = e1 * v0.z + e2 * v1.z + e3 * v2.z;
+						depthl = 1 / (e1 * v0.z + e2 * v1.z + e3 * v2.z);
 						if (depth[y][x] > depthl)
 						{
 							p1.x = x;
 							p1.y = y;
-							cx.R = (uchar)(e1 * c0.R + e2 * c1.R + e3 * c2.R);
-							cx.G = (uchar)(e1 * c0.G + e2 * c1.G + e3 * c2.G);
-							cx.B = (uchar)(e1 * c0.B + e2 * c1.B + e3 * c2.B);
+
+							if (mode)
+							{
+								float u = (e1 * uv0.x + e2 * uv1.x + e3 * uv2.x) * depthl;
+								float v = (e1 * uv0.y + e2 * uv1.y + e3 * uv2.y) * depthl;
+								Point pt = Point(u * texture->rows, v * texture->rows);
+								GetPixelColor(&pt, &cx, cn, texture);
+							}
+							else
+							{
+								cx.R = (uchar)(e1 * c0.R + e2 * c1.R + e3 * c2.R) * depthl;
+								cx.G = (uchar)(e1 * c0.G + e2 * c1.G + e3 * c2.G) * depthl;
+								cx.B = (uchar)(e1 * c0.B + e2 * c1.B + e3 * c2.B) * depthl;
+							}
+
 
 							(*pixel_placer)(&p1, &cx);
 							depth[y][x] = depthl;

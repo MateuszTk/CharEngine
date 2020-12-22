@@ -11,15 +11,15 @@ using namespace std;
 
 namespace objLoader
 {
-    float getNext(int* start, string* line)
+    float getNext(int* start, string* line, char breakpoint = ' ')
     {
-        while ((*line)[*start] != ' ') { (*start)++; }
+        while ((*line)[*start] != breakpoint) { (*start)++; }
         (*start)++;
         return atof(line->c_str() + *start);
     }
 
     //returns loaded actors names
-	std::vector<std::string> LoadObj(string path, string actorName = "")
+	std::vector<std::string> LoadObj(string path, string actorName = "", Vector3 position = Vector3(0, 0, 0))
 	{
         string line;
         std::vector<std::string> names;
@@ -30,7 +30,7 @@ namespace objLoader
         if (file.is_open())
         {
             Material mat;
-            mat.name = "defaultxyz";
+            mat.name = "defaultxyz";           
 
             while (getline(file, line))
             {
@@ -40,6 +40,7 @@ namespace objLoader
                     {
                         materials.push_back(mat);
                     }
+                    mat.texture.release();
                     mat.name = line.substr(7, line.length() - 1);
                 }
                 else if(line[0] == 'K')
@@ -59,6 +60,18 @@ namespace objLoader
                     int start = 0;
                     mat.transparency = 1.0f - getNext(&start, &line);
                 }
+                else if (line[0] == 'm' && line[5] =='d')
+                {
+                    Mat texture = imread(path + ".png", IMREAD_COLOR);
+                    if (!texture.data)
+                    {
+                        std::cout << "Could not open or find the image" << std::endl;
+                    }
+                    else
+                    {
+                        mat.texture = texture;
+                    }
+                }
             }
             materials.push_back(mat);
             file.close();
@@ -75,6 +88,7 @@ namespace objLoader
             pTriangle tri;
             Vertex vert;
             vector<Vertex>* vertices;
+            vector<Vector2> uvs;
             int xyz = 0;
             int vertCount = 0;
 
@@ -83,6 +97,7 @@ namespace objLoader
                 switch (line[0])
                 {
                 case 'o':
+                    *(act.getPosition()) = position;
                     if (*(act.getName()) != "defaultxyz")
                     {
                         actors.push_back(act);
@@ -95,27 +110,44 @@ namespace objLoader
                     break;
 
                 case 'v':
-                    xyz = 0;
-                    vert.raw.x = getNext(&xyz, &line);
-                    vert.raw.y = getNext(&xyz, &line);
-                    vert.raw.z = getNext(&xyz, &line);
-                    vert.transformed.x = 0;
-                    vert.transformed.y = 0;
-                    vert.transformed.z = 0;
-                    act.getVertices()->push_back(vert);
-                    //cout << vertex.x << " " << vertex.y << " " << vertex.z << '\n';
+                    if (line[1] == ' ')
+                    {
+                        xyz = 0;
+                        vert.raw.x = getNext(&xyz, &line);
+                        vert.raw.y = getNext(&xyz, &line);
+                        vert.raw.z = getNext(&xyz, &line);
+                        vert.transformed.x = 0;
+                        vert.transformed.y = 0;
+                        vert.transformed.z = 0;
+                        act.getVertices()->push_back(vert);
+                        //cout << vertex.x << " " << vertex.y << " " << vertex.z << '\n';
+                    }
+                    else if(line[1] == 't')
+                    {
+                        xyz = 0;
+                        Vector2 v = Vector2(0, 0);
+                        v.x = getNext(&xyz, &line);
+                        v.y = 1.0f - getNext(&xyz, &line);
+                        uvs.push_back(v);
+                    }
                     break;
 
                 case 'f':
                     xyz = 0;
                     vertex.x = getNext(&xyz, &line);
-                    vertex.y = getNext(&xyz, &line);
-                    vertex.z = getNext(&xyz, &line);
-
-                    //vertices = act.getVertices();
-                    tri.v1 = vertex.y - 1 - vertCount;
                     tri.v2 = vertex.x - 1 - vertCount;
-                    tri.v3 = vertex.z - 1 - vertCount;//&((*vertices)[vertex.z - 1.0f].raw);
+                    vertex.x = getNext(&xyz, &line, '/');
+                    tri.uv2 = uvs[vertex.x - 1];
+
+                    vertex.y = getNext(&xyz, &line);
+                    tri.v1 = vertex.y - 1 - vertCount;
+                    vertex.y = getNext(&xyz, &line, '/');
+                    tri.uv1 = uvs[vertex.y - 1];
+
+                    vertex.z = getNext(&xyz, &line);
+                    tri.v3 = vertex.z - 1 - vertCount;
+                    vertex.z = getNext(&xyz, &line, '/');
+                    tri.uv3 = uvs[vertex.z - 1];
                     
 
                     act.getTriangles()->push_back(tri);
