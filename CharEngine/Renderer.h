@@ -11,10 +11,12 @@ using namespace cv;
 
 vector<Actor> actors;
 
+
 class Renderer
 {
 
 public:
+
     virtual void Update() = 0;
     virtual void Start() = 0;
 
@@ -28,6 +30,8 @@ public:
         Color c2 = Color(255, 0, 255);
         Color c3 = Color(255, 0, 255);
 
+        setRotation(cameraAngle);
+
         //opaque pass
         auto end = std::end(actors);
         for (auto act = std::begin(actors); act != end; ++act)
@@ -38,14 +42,18 @@ public:
                 tria = *(act->getTriangles());
                 pos = act->getPosition();
                 TranslateMesh(act->getVertices(), pos);
+                Triangle* tmp;
 
                 for (pTriangle tri : tria)
                 {
-                    tdTriangle(pTriangle2Triangle(&tri, act->getVertices(), mat->color), 0.0f, &(mat->texture));
+                    tmp = pTriangle2Triangle(&tri, act->getVertices(),mat->color);
+                    tdTriangle(*tmp, 0.0f, &(mat->texture));
                 }
             }
             else
+            {
                 passActors.push_back(&(*act));
+            }
         }
 
         //transparent pass
@@ -57,19 +65,27 @@ public:
             tria = *((*act)->getTriangles());
             pos = (*act)->getPosition();
             TranslateMesh((*act)->getVertices(), pos);
+            Triangle* tmp;
 
             for (pTriangle tri : tria)
-            {            
-                tdTriangle(pTriangle2Triangle(&tri, (*act)->getVertices(), mat->color), mat->transparency, &(mat->texture));
+            {      
+                tmp = pTriangle2Triangle(&tri, (*act)->getVertices(), mat->color);
+                tdTriangle(*tmp, mat->transparency, &(mat->texture));
             }
         }
     }
 
 
+private:
+    static float cosCamX, sinCamX;
+    static float cosCamY, sinCamY;
+    static float cosCamZ, sinCamZ;
 
 protected:
     
-    static Triangle pTriangle2Triangle(pTriangle* ptriangle, vector<Vertex>* vertices, Color color)
+    static Screen screen;
+
+    static Triangle* pTriangle2Triangle(pTriangle* ptriangle, vector<Vertex>* vertices, Color color)
     {
         Triangle tri;
         tri.v1 = (*vertices)[ptriangle->v1].transformed;
@@ -81,26 +97,36 @@ protected:
         tri.uv1 = ptriangle->uv1;
         tri.uv2 = ptriangle->uv2;
         tri.uv3 = ptriangle->uv3;
-        return tri;
+        return &tri;
     }
 
-    static Vector2* rotate2(float x, float y, float angle)
+    static void setRotation(Vector3 angle)
+    {
+        cosCamX = cos(angle.x);
+        cosCamY = cos(angle.y);
+        cosCamZ = cos(angle.z);
+        sinCamX = sin(angle.x);
+        sinCamY = sin(angle.y);
+        sinCamZ = sin(angle.z);
+    }
+
+    /*static Vector2* rotate2(float x, float y, float angle)
     {
         return &Vector2(x * cos(angle) + y * sin(angle), y * cos(angle) - x * sin(angle));
-    }
+    }*/
 
     static Vector3* rotate(float x, float y, float z)
     {
         Vector3 coord(0, 0, 0);
-        Vector2* rotated = rotate2(x, y, cameraAngle.z);
-        coord.x = rotated->x;
-        coord.y = rotated->y;
-        rotated = rotate2(coord.x, z, cameraAngle.y);
-        coord.x = rotated->x;
-        coord.z = rotated->y;
-        rotated = rotate2(coord.z, coord.y, cameraAngle.x);
-        coord.z = rotated->x;
-        coord.y = rotated->y;
+        Vector2 rotated = Vector2(x * cosCamZ + y * sinCamZ, y * cosCamZ - x * sinCamZ); //rotate2(x, y, cameraAngle.z);
+        coord.x = rotated.x;
+        coord.y = rotated.y;
+        rotated.UpdateV(coord.x * cosCamY + z * sinCamY, z * cosCamY - coord.x * sinCamY);// = rotate2(coord.x, z, cameraAngle.y);
+        coord.x = rotated.x;
+        coord.z = rotated.y;
+        rotated.UpdateV(coord.z * cosCamX + coord.y * sinCamX, coord.y * cosCamX - coord.z * sinCamX);// rotate2(coord.z, coord.y, cameraAngle.x);
+        coord.z = rotated.x;
+        coord.y = rotated.y;
         return &coord;
     }
 
@@ -132,9 +158,15 @@ protected:
         triangle.v2.z = (triangle.v2.z + dist) * factor;
         triangle.v3.z = (triangle.v3.z + dist) * factor;
 
-        Screen::DrawTriangle(triangle.v1, triangle.v2, triangle.v3, (triangle.vertexColor1), (triangle.vertexColor2), (triangle.vertexColor3), transparency, texture, triangle.uv1, triangle.uv2, triangle.uv3);
+        screen.DrawTriangle(triangle.v1, triangle.v2, triangle.v3, (triangle.vertexColor1), (triangle.vertexColor2), (triangle.vertexColor3), transparency, texture, triangle.uv1, triangle.uv2, triangle.uv3);
 
         //debug
         //putText(image, to_string(p3v.z), *Screen::PosToScreenCenter(&Point(p3v.x, p3v.y)), FONT_HERSHEY_SIMPLEX, 0.5f, Scalar(255, 255, 255), 1);
     }
+
 };
+
+float Renderer::cosCamX = 0, Renderer::sinCamX = 0;
+float Renderer::cosCamY = 0, Renderer::sinCamY = 0;
+float Renderer::cosCamZ = 0, Renderer::sinCamZ = 0;
+Screen Renderer::screen;

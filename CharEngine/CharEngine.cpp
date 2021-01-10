@@ -12,6 +12,7 @@ typedef std::chrono::high_resolution_clock Clock;
 Vector3 cameraAngle = Vector3(0, 0, 0);
 Vector3 cameraPosition = Vector3(0, 0, 0);
 float depth[width][height];
+//float normals[width][height];
 Mat image;
 float deltaTime = 0;
 
@@ -45,12 +46,14 @@ int main()
     auto t1 = Clock::now();
     setMouseCallback("Display window", mouse_callback);
 
-    Main rend;
-    rend.Start();
+    Main mainObj;
+    mainObj.Start();
 
     uchar fpsDelay = 0;
     string fps;
     float avgDelta = 0;
+
+    avx::initialize();
 
     while (true)
     {
@@ -81,7 +84,7 @@ int main()
             cameraPosition.x -= 1;
             break;
         }
-        rend.Update();
+        mainObj.Update();
 
 
         auto t2 = Clock::now();
@@ -102,6 +105,7 @@ int main()
         cv::putText(image, fps, Point(0, 12), FONT_HERSHEY_SIMPLEX, 0.5f, Scalar(255, 255, 255), 1);
         Screen::PrintFrame();
         //Screen::DebugDepth();
+        //Screen::DebugNormals();
     }
     return 0;
 }

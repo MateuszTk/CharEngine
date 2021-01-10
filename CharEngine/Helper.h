@@ -52,6 +52,48 @@ struct Color
 	}
 };
 
+struct fColor
+{
+	float R;
+	float G;
+	float B;
+	fColor(float r, float g, float b)
+	{
+		R = r;
+		G = g;
+		B = b;
+	}
+
+	fColor(Color& c)
+	{
+		R = c.R;
+		G = c.G;
+		B = c.B;
+	}
+
+	void UpdateC(float r, float g, float b)
+	{
+		R = r;
+		G = g;
+		B = b;
+	}
+
+	void operator *=(const float& w)
+	{
+		R *= w;
+		G *= w;
+		B *= w;
+	}
+
+	void operator =(const Color& w)
+	{
+		R = w.R;
+		G = w.G;
+		B = w.B;
+	}
+};
+
+
 struct ColorA
 {
 	uchar R;
@@ -83,6 +125,13 @@ struct Vector2
 		x = _x;
 		y = _y;
 	}
+
+	void UpdateV(float _x, float _y)
+	{
+		x = _x;
+		y = _y;
+	}
+
 	void Normalize()
 	{
 		float magnitude = sqrt(x * x + y * y);
@@ -166,9 +215,8 @@ struct Material
 
 
 
-
-
 extern float depth[width][height];
+//extern float normals[width][height];
 extern Mat image;
 extern Vector3 cameraAngle;
 extern Vector3 cameraPosition;

@@ -26,10 +26,10 @@ public:
         bridge1a = Actor::Find(&bridge1, &actors);
         bridge2a = Actor::Find(&bridge2, &actors);*/
 
-        Material mat;
+        /*Material mat;
         Vector3 pos(0,0,0);
         mat.color.UpdateC(0, 255, 255);
-        mat.transparency = 1;
+        mat.transparency = 1;*/
 
         /*for (int x = 0; x < 2; x++)
         {
