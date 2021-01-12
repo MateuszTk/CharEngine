@@ -16,6 +16,10 @@ float depth[width][height];
 Mat image;
 float deltaTime = 0;
 
+#ifdef MULTITHREADING
+// Create threads
+ThreadPool pool(3);
+#endif
 
 int x = 0, y = 0;
 
@@ -52,8 +56,6 @@ int main()
     uchar fpsDelay = 0;
     string fps;
     float avgDelta = 0;
-
-    avx::initialize();
 
     while (true)
     {

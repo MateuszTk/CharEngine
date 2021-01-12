@@ -22,13 +22,8 @@ public:
 
     static void render()
     {
-        vector<pTriangle> tria;
         vector<Actor*> passActors;
-        Vector3* pos;
         Material* mat;
-        Color c1 = Color(255, 0, 255);
-        Color c2 = Color(255, 0, 255);
-        Color c3 = Color(255, 0, 255);
 
         setRotation(cameraAngle);
 
@@ -36,45 +31,55 @@ public:
         auto end = std::end(actors);
         for (auto act = std::begin(actors); act != end; ++act)
         {
-            mat = act->getMaterial();
-            if (mat->transparency == 0.0f)
+            if (act->getMaterial()->transparency == 0.0f)
             {
-                tria = *(act->getTriangles());
-                pos = act->getPosition();
-                TranslateMesh(act->getVertices(), pos);
-                Triangle* tmp;
-
-                for (pTriangle tri : tria)
-                {
-                    tmp = pTriangle2Triangle(&tri, act->getVertices(),mat->color);
-                    tdTriangle(*tmp, 0.0f, &(mat->texture));
-                }
+#ifndef MULTITHREADING
+                renderActor(&*act);
+#endif // !MULTITHREADING
+#ifdef MULTITHREADING
+                pool.doJob(std::bind(Renderer::renderActor, &*act));
+#endif // MULTITHREADING
+                
             }
             else
             {
                 passActors.push_back(&(*act));
             }
         }
+#ifdef MULTITHREADING
+        while (!pool.isFinished()) { /*wait for all threads to finish*/ }
+#endif // MULTITHREADING
 
         //transparent pass
         auto end2 = std::end(passActors);
         for (auto act = std::begin(passActors); act != end2; ++act)
         {
-            mat = (*act)->getMaterial();
-
-            tria = *((*act)->getTriangles());
-            pos = (*act)->getPosition();
-            TranslateMesh((*act)->getVertices(), pos);
-            Triangle* tmp;
-
-            for (pTriangle tri : tria)
-            {      
-                tmp = pTriangle2Triangle(&tri, (*act)->getVertices(), mat->color);
-                tdTriangle(*tmp, mat->transparency, &(mat->texture));
-            }
+#ifndef MULTITHREADING
+            renderActor(*act);
+#endif // !MULTITHREADING
+#ifdef MULTITHREADING
+            pool.doJob(std::bind(Renderer::renderActor, *act));
+#endif // MULTITHREADING
         }
+#ifdef MULTITHREADING
+        while (!pool.isFinished()) { /*wait for all threads to finish*/ }
+#endif // MULTITHREADING
     }
 
+    static void renderActor(Actor* actor)
+    {
+        Material* const mat = actor->getMaterial();
+        vector<pTriangle>* const tria = actor->getTriangles();
+        Vector3* pos = actor->getPosition();
+        TranslateMesh(actor->getVertices(), pos);
+        Triangle* tmp;
+
+        for (pTriangle tri : *tria)
+        {
+            tmp = pTriangle2Triangle(&tri, actor->getVertices(), mat->color);
+            tdTriangle(*tmp, mat->transparency, &(mat->texture));
+        }
+    }
 
 private:
     static float cosCamX, sinCamX;
@@ -158,7 +163,12 @@ protected:
         triangle.v2.z = (triangle.v2.z + dist) * factor;
         triangle.v3.z = (triangle.v3.z + dist) * factor;
 
-        screen.DrawTriangle(triangle.v1, triangle.v2, triangle.v3, (triangle.vertexColor1), (triangle.vertexColor2), (triangle.vertexColor3), transparency, texture, triangle.uv1, triangle.uv2, triangle.uv3);
+/*#ifdef MULTITHREADING
+        pool.doJob(std::bind(&(Screen::DrawTriangle), &screen, triangle.v1, triangle.v2, triangle.v3, (triangle.vertexColor1), (triangle.vertexColor2), (triangle.vertexColor3), transparency, texture, triangle.uv1, triangle.uv2, triangle.uv3));
+#endif // MULTITHREADING*/
+
+        Screen::DrawTriangle(triangle.v1, triangle.v2, triangle.v3, (triangle.vertexColor1), (triangle.vertexColor2), (triangle.vertexColor3), transparency, texture, triangle.uv1, triangle.uv2, triangle.uv3);
+
 
         //debug
         //putText(image, to_string(p3v.z), *Screen::PosToScreenCenter(&Point(p3v.x, p3v.y)), FONT_HERSHEY_SIMPLEX, 0.5f, Scalar(255, 255, 255), 1);
@@ -169,4 +179,4 @@ protected:
 float Renderer::cosCamX = 0, Renderer::sinCamX = 0;
 float Renderer::cosCamY = 0, Renderer::sinCamY = 0;
 float Renderer::cosCamZ = 0, Renderer::sinCamZ = 0;
-Screen Renderer::screen;
+//Screen Renderer::screen;

@@ -9,13 +9,15 @@
 #include "opencv2/highgui.hpp"
 #include <cmath>
 #include <vector>
-//#include "Actor.h"
+#include "ThreadPool.h"
 
+#define AVX
+#define MULTITHREADING
 
 using namespace cv;
 using namespace std;
 
-const int width = 800;
+const int width = 1400;
 const int height = (int)((float)width / 1.0f);
 const int halfOfWidth = width * 0.5f;
 const int halfOfHeight = height * 0.5f;
@@ -221,4 +223,5 @@ extern Mat image;
 extern Vector3 cameraAngle;
 extern Vector3 cameraPosition;
 extern float deltaTime;
+extern ThreadPool pool;
 

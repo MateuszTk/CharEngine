@@ -12,7 +12,7 @@
 
 #include "AVX.h"
 
-#define AVX
+
 //#define SMART_AVX
 
 //using namespace helper;
@@ -20,6 +20,13 @@ using namespace cv;
 
 class Screen
 {
+
+#ifdef AVX
+/*private:
+	__m256* AVXset2 = new __m256[20];
+	__m256* subResult = new __m256[20];*/
+#endif // AVX
+
 public:
 	static Point* PosToScreenCenter(Point* pos)
 	{
@@ -96,7 +103,7 @@ public:
 		//fill_n(&normals[0][0], width * height, 0);
 	}
 
-	static void DebugDepth()
+	void DebugDepth()
 	{
 		Point p;
 		ColorA c(0, 0, 0, 0);
@@ -116,7 +123,7 @@ public:
 		fill_n(&depth[0][0], width * height, 255);
 	}
 
-	void DrawTriangle(Vector3 v0, Vector3 v1, Vector3 v2, Color c0b, Color c1b, Color c2b, float transparency, Mat* texture, Vector2 uv0, Vector2 uv1, Vector2 uv2)
+	static void DrawTriangle(Vector3 v0, Vector3 v1, Vector3 v2, Color c0b, Color c1b, Color c2b, float transparency, Mat* texture, Vector2 uv0, Vector2 uv1, Vector2 uv2)
 	{
 		if (v0.z <= clipNear || v1.z <= clipNear || v2.z <= clipNear || v0.z > farMax || v1.z > farMax || v2.z > farMax)
 			return;
@@ -209,35 +216,23 @@ public:
 
 #ifdef AVX
 
-#if defined SMART_AVX
-			if (avxMode)
-#endif
-			{
-				avx::subResult[1] = _mm256_set1_ps(v1.y - v0.y);
 
-				avx::subResult[3] = _mm256_set1_ps(v1.x - v0.x);
-
-				avx::subResult[5] = _mm256_set1_ps(v2.y - v1.y);
-
-				avx::subResult[7] = _mm256_set1_ps(v2.x - v1.x);
-
-				avx::subResult[9] = _mm256_set1_ps(v0.y - v2.y);
-
-				avx::subResult[11] = _mm256_set1_ps(v0.x - v2.x);
+				//__m256* AVXset2 = new __m256[20];
+				//__m256* subResult = new __m256[20];
+				const __m256 subResult_1 = _mm256_set1_ps(v1.y - v0.y);
+				const __m256 subResult_3 = _mm256_set1_ps(v1.x - v0.x);
+				const __m256 subResult_5 = _mm256_set1_ps(v2.y - v1.y);
+				const __m256 subResult_7 = _mm256_set1_ps(v2.x - v1.x);
+				const __m256 subResult_9 = _mm256_set1_ps(v0.y - v2.y);
+				const __m256 subResult_11 = _mm256_set1_ps(v0.x - v2.x);
 
 				//----------
-				avx::AVXset2[0] = _mm256_set1_ps(v0.x);
-
-				avx::AVXset2[2] = _mm256_set1_ps(v0.y);
-
-				avx::AVXset2[4] = _mm256_set1_ps(v1.x);
-
-				avx::AVXset2[6] = _mm256_set1_ps(v1.y);
-
-				avx::AVXset2[8] = _mm256_set1_ps(v2.x);
-
-				avx::AVXset2[10] = _mm256_set1_ps(v2.y);
-			}
+				const __m256 AVXset2_0 = _mm256_set1_ps(v0.x);
+				const __m256 AVXset2_2 = _mm256_set1_ps(v0.y);
+				const __m256 AVXset2_4 = _mm256_set1_ps(v1.x);
+				const __m256 AVXset2_6 = _mm256_set1_ps(v1.y);
+				const __m256 AVXset2_8 = _mm256_set1_ps(v2.x);
+				const __m256 AVXset2_10 = _mm256_set1_ps(v2.y);
 			
 
 			__m256* ptx = 0;
@@ -359,9 +354,9 @@ public:
 
 						avxset1 = _mm256_add_ps(_mm256_set1_ps(y), avx::a2);
 
-						const __m256 e3_256 = _mm256_div_ps(_mm256_fmsub_ps(_mm256_sub_ps(avxset0, avx::AVXset2[0]), avx::subResult[1], _mm256_mul_ps(_mm256_sub_ps(avxset1, avx::AVXset2[2]), avx::subResult[3])), areaSet);
-						const __m256 e1_256 = _mm256_div_ps(_mm256_fmsub_ps(_mm256_sub_ps(avxset0, avx::AVXset2[4]), avx::subResult[5], _mm256_mul_ps(_mm256_sub_ps(avxset1, avx::AVXset2[6]), avx::subResult[7])), areaSet);
-						const __m256 e2_256 = _mm256_div_ps(_mm256_fmsub_ps(_mm256_sub_ps(avxset0, avx::AVXset2[8]), avx::subResult[9], _mm256_mul_ps(_mm256_sub_ps(avxset1, avx::AVXset2[10]), avx::subResult[11])), areaSet);
+						const __m256 e3_256 = _mm256_div_ps(_mm256_fmsub_ps(_mm256_sub_ps(avxset0, AVXset2_0), subResult_1, _mm256_mul_ps(_mm256_sub_ps(avxset1, AVXset2_2), subResult_3)), areaSet);
+						const __m256 e1_256 = _mm256_div_ps(_mm256_fmsub_ps(_mm256_sub_ps(avxset0, AVXset2_4), subResult_5, _mm256_mul_ps(_mm256_sub_ps(avxset1, AVXset2_6), subResult_7)), areaSet);
+						const __m256 e2_256 = _mm256_div_ps(_mm256_fmsub_ps(_mm256_sub_ps(avxset0, AVXset2_8), subResult_9, _mm256_mul_ps(_mm256_sub_ps(avxset1, AVXset2_10), subResult_11)), areaSet);
 
 						const int insideI = _mm256_movemask_ps(_mm256_and_ps(_mm256_cmp_ps(e1_256, _mm256_set1_ps(0), _CMP_GE_OQ), _mm256_and_ps(_mm256_cmp_ps(e2_256, _mm256_set1_ps(0), _CMP_GE_OQ), _mm256_cmp_ps(e3_256, _mm256_set1_ps(0), _CMP_GE_OQ))));
 						if (insideI != 0)

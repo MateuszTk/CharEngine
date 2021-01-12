@@ -10,9 +10,9 @@ class Main : public Renderer
 {
 public:
 
-    vector<Actor*> bridge0a;
-    vector<Actor*> bridge1a;
-    vector<Actor*> bridge2a;
+    //vector<Actor*> bridge0a;
+    //vector<Actor*> bridge1a;
+    //vector<Actor*> bridge2a;
 
     // Use this for initialization
     void Start() override
@@ -22,9 +22,9 @@ public:
         auto bridge1 = objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\bridge", "1");
         auto bridge2 = objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\bridge", "2");
 
-        bridge0a = Actor::Find(&bridge0, &actors);
-        bridge1a = Actor::Find(&bridge1, &actors);
-        bridge2a = Actor::Find(&bridge2, &actors);*/
+        //bridge0a = Actor::Find(&bridge0, &actors);
+       // bridge1a = Actor::Find(&bridge1, &actors);
+        //bridge2a = Actor::Find(&bridge2, &actors);
 
         /*Material mat;
         Vector3 pos(0,0,0);
@@ -40,7 +40,7 @@ public:
             }
         }*/
         //pos.UpdateV(0, 0, 0);
-        //objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cube", "", pos);
+        //objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cube", "", pos);*/
     }
 
     //Vector3 cpos = Vector3(0,0,0);
@@ -48,7 +48,7 @@ public:
     // Update is called once per frame
     void Update() override
     {
-       /* float speed = 1;
+        /*float speed = 1;
         cpos.x = 8000;//speed * deltaTime;
         int d = 84 * 100;
         int segments = 3;
