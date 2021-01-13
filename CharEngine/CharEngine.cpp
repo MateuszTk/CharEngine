@@ -45,7 +45,7 @@ int main()
     //std::cout << __cplusplus << std::endl;
 
     namedWindow("Display window", WINDOW_AUTOSIZE); // Create a window for display.
-    image = Mat::zeros(width, height, CV_8UC3);
+    image = Mat::zeros(height, width, CV_8UC3);
 
     auto t1 = Clock::now();
     setMouseCallback("Display window", mouse_callback);

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <iostream>
-//#include <windows.h>
 #include <chrono>
 #include "opencv2/core.hpp"
 #include "opencv2/imgproc.hpp"
@@ -17,8 +16,8 @@
 using namespace cv;
 using namespace std;
 
-const int width = 1400;
-const int height = (int)((float)width / 1.0f);
+const int width = 1280;
+const int height = 720;
 const int halfOfWidth = width * 0.5f;
 const int halfOfHeight = height * 0.5f;
 float dist = 8;

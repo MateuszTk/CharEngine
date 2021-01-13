@@ -1,15 +1,6 @@
 #pragma once
 
-/*#include <iostream>
-#include <windows.h>
-#include <chrono>
-#include "opencv2/core.hpp"
-#include "opencv2/imgproc.hpp"
-#include "opencv2/imgcodecs.hpp"
-#include "opencv2/highgui.hpp"
-#include <cmath>*/
 #include "Helper.h"
-
 #include "AVX.h"
 
 
@@ -21,26 +12,18 @@ using namespace cv;
 class Screen
 {
 
-#ifdef AVX
-/*private:
-	__m256* AVXset2 = new __m256[20];
-	__m256* subResult = new __m256[20];*/
-#endif // AVX
-
 public:
 	static Point* PosToScreenCenter(Point* pos)
 	{
-		float yResize = (float)height / (float)width;
 		pos->x = halfOfWidth + pos->x;
-		pos->y = (halfOfHeight - pos->y) * yResize;
+		pos->y = halfOfHeight - pos->y;
 		return pos;
 	}
 
 	static Vector3* PosToScreenCenter(Vector3* pos)
 	{
-		float yResize = (float)height / (float)width;
 		pos->x = halfOfWidth + pos->x;
-		pos->y = (halfOfHeight - pos->y) * yResize;
+		pos->y = halfOfHeight - pos->y;
 		return pos;
 	}
 
@@ -303,7 +286,7 @@ public:
 							e2 /= area;
 							e3 /= area;
 							depthl = 1 / (e1 * v0.z + e2 * v1.z + e3 * v2.z);
-							if (depth[y][x] > depthl)
+							if (depth[x][y] > depthl)
 							{
 								p1.x = x;
 								p1.y = y;
@@ -325,7 +308,7 @@ public:
 
 
 								(*pixel_placer)(&p1, &cx);
-								depth[y][x] = depthl;
+								depth[x][y] = depthl;
 							}
 							end = true;
 						}
@@ -383,7 +366,7 @@ public:
 							{
 								if (((insideI >> i) & 1) == 1)
 								{
-									if (depth[y][x] > ((float*)&depthl_256)[i])
+									if (depth[x][y] > ((float*)&depthl_256)[i])
 									{
 										if (mode)
 										{
@@ -397,7 +380,7 @@ public:
 										}
 
 										(*AVXpixel_placer)(pixelId[i], &cx);
-										depth[y][x] = ((float*)&depthl_256)[i];
+										depth[x][y] = ((float*)&depthl_256)[i];
 									}
 									end = true;
 								}

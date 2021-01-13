@@ -139,9 +139,9 @@ protected:
     {
 
         Vector3 rotated = *rotate(x, y, z);
-        float multiplier = 0.5f * width / (((float)rotated.z + (float)dist) * fov);
+        float multiplier = 0.5f * width / (((float)rotated.z + (float)dist) * fov);//0.5f * width / (((float)rotated.z + (float)dist) * fov);
         rotated.x *= multiplier;
-        rotated.y *= multiplier;
+        rotated.y *= multiplier;//(rotated.y / (rotated.z + dist));
         return rotated;
     }
 
@@ -162,10 +162,6 @@ protected:
         triangle.v1.z = (triangle.v1.z + dist) * factor;
         triangle.v2.z = (triangle.v2.z + dist) * factor;
         triangle.v3.z = (triangle.v3.z + dist) * factor;
-
-/*#ifdef MULTITHREADING
-        pool.doJob(std::bind(&(Screen::DrawTriangle), &screen, triangle.v1, triangle.v2, triangle.v3, (triangle.vertexColor1), (triangle.vertexColor2), (triangle.vertexColor3), transparency, texture, triangle.uv1, triangle.uv2, triangle.uv3));
-#endif // MULTITHREADING*/
 
         Screen::DrawTriangle(triangle.v1, triangle.v2, triangle.v3, (triangle.vertexColor1), (triangle.vertexColor2), (triangle.vertexColor3), transparency, texture, triangle.uv1, triangle.uv2, triangle.uv3);
 

@@ -11,13 +11,6 @@ namespace avx
 	}
 
 
-	//------
-	//__m256* AVXset2 = new __m256[20];//
-	
-
-	//__m256* subResult = new __m256[20];//
-
-
 	const __m256 a2 = _mm256_setr_ps(0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f);
 
 	const __m256 oneSet = _mm256_set1_ps(1);
