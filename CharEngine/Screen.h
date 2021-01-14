@@ -110,7 +110,7 @@ public:
 	{
 		if (v0.z <= clipNear || v1.z <= clipNear || v2.z <= clipNear || v0.z > farMax || v1.z > farMax || v2.z > farMax)
 			return;
-		
+
 		PosToScreenCenter(&v0);
 		PosToScreenCenter(&v1);
 		PosToScreenCenter(&v2);
@@ -221,6 +221,7 @@ public:
 			__m256* ptx = 0;
 			__m256* pty = 0;
 			const __m256 textureRows = _mm256_set1_ps(texture->rows);
+			const __m256 textureCols = _mm256_set1_ps(texture->cols - 1);
 
 			__m256 v0z = _mm256_set1_ps(v0.z);
 			__m256 v1z = _mm256_set1_ps(v1.z);
@@ -296,7 +297,7 @@ public:
 									u = (e1 * uv0.x + e2 * uv1.x + e3 * uv2.x) * depthl;
 									v = (e1 * uv0.y + e2 * uv1.y + e3 * uv2.y) * depthl;
 									pt.x = u * texture->rows;
-									pt.y = v * texture->rows;
+									pt.y = v * (texture->cols - 1);
 									GetPixelColor(&pt, &cx, cn, texture);
 								}
 								else
@@ -351,7 +352,7 @@ public:
 							if (mode)
 							{
 								ptx = &_mm256_mul_ps(_mm256_mul_ps(avx::AVXinterpolate(e1_256, uv0x, e2_256, uv1x, e3_256, uv2x), depthl_256), textureRows);
-								pty = &_mm256_mul_ps(_mm256_mul_ps(avx::AVXinterpolate(e1_256, uv0y, e2_256, uv1y, e3_256, uv2y), depthl_256), textureRows);
+								pty = &_mm256_mul_ps(_mm256_mul_ps(avx::AVXinterpolate(e1_256, uv0y, e2_256, uv1y, e3_256, uv2y), depthl_256), textureCols);
 								texturePixelId = avx::AVXpoint2PixelId(*ptx, *pty, cn_256, textureRows);
 							}
 							else

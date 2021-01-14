@@ -30,7 +30,7 @@ namespace objLoader
         if (file.is_open())
         {
             Material mat;
-            mat.name = "defaultxyz";           
+            mat.name = "defaultxyz";
 
             while (getline(file, line))
             {
@@ -62,7 +62,8 @@ namespace objLoader
                 }
                 else if (line[0] == 'm' && line[5] =='d')
                 {
-                    Mat texture = imread(path + ".png", IMREAD_COLOR);
+                    string texturePath = line.substr(7);
+                    Mat texture = imread(texturePath, IMREAD_COLOR);
                     if (!texture.data)
                     {
                         std::cout << "Could not open or find the image" << std::endl;

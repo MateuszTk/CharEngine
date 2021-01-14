@@ -10,21 +10,27 @@ class Main : public Renderer
 {
 public:
 
-    //vector<Actor*> bridge0a;
-    //vector<Actor*> bridge1a;
-    //vector<Actor*> bridge2a;
+    vector<Actor*> carv;
 
     // Use this for initialization
     void Start() override
     {
         auto car = objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\car");
-        /*auto bridge0 = objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\bridge");
-        auto bridge1 = objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\bridge", "1");
-        auto bridge2 = objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\bridge", "2");
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "0", Vector3(0, 0, 0));
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "1", Vector3(-20, 0, 0));
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "2", Vector3(20, 0, 0));
 
-        //bridge0a = Actor::Find(&bridge0, &actors);
-       // bridge1a = Actor::Find(&bridge1, &actors);
-        //bridge2a = Actor::Find(&bridge2, &actors);
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "0", Vector3(0, 0, -20));
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "1", Vector3(-20, 0, -20));
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "2", Vector3(20, 0, -20));
+
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "0", Vector3(0, 0, 20));
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "1", Vector3(-20, 0, 20));
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "2", Vector3(20, 0, 20));
+        
+
+        carv = Actor::Find(&car, &actors);
+       
 
         /*Material mat;
         Vector3 pos(0,0,0);
@@ -44,13 +50,22 @@ public:
     }
 
     //Vector3 cpos = Vector3(0,0,0);
+    float s = 0;
 
     // Update is called once per frame
     void Update() override
     {
-        /*float speed = 1;
-        cpos.x = 8000;//speed * deltaTime;
-        int d = 84 * 100;
+        float speed = 0.001f;
+        s += speed * deltaTime;
+        float x = sin(s) * 10;
+
+        auto end = std::end(carv);
+        for (auto act = std::begin(carv); act != end; ++act)
+        {
+            (*act)->getPosition()->UpdateV(x, 0, 0);
+        }
+        //cameraPosition.UpdateV(-x, 0, 0);
+        /*int d = 84 * 100;
         int segments = 3;
 
         Vector3 pos((d - ((int)(cpos.x + d/ segments)% d) - d/ segments) / 100.0f, 0, 0);

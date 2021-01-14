@@ -18,6 +18,7 @@ float deltaTime = 0;
 
 #ifdef MULTITHREADING
 // Create threads
+//int threads = thread::hardware_concurrency() - 1;
 ThreadPool pool(3);
 #endif
 
@@ -33,9 +34,9 @@ void mouse_callback(int event, int xm, int ym, int flag, void* param)
     else if (event == EVENT_MOUSEWHEEL)
     {
         if (getMouseWheelDelta(flag) > 0)
-            dist -= 0.2f;
+            dist -= 0.4f;
         else
-            dist += 0.2f;
+            dist += 0.4f;
     }
 }
 

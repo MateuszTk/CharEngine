@@ -120,7 +120,7 @@ protected:
         return &Vector2(x * cos(angle) + y * sin(angle), y * cos(angle) - x * sin(angle));
     }*/
 
-    static Vector3* rotate(float x, float y, float z)
+    static Vector3* rotateWorld(float x, float y, float z)
     {
         Vector3 coord(0, 0, 0);
         Vector2 rotated = Vector2(x * cosCamZ + y * sinCamZ, y * cosCamZ - x * sinCamZ); //rotate2(x, y, cameraAngle.z);
@@ -138,7 +138,7 @@ protected:
     static Vector3 TdToScreen(float x, float y, float z)
     {
 
-        Vector3 rotated = *rotate(x, y, z);
+        Vector3 rotated = *rotateWorld(x, y, z);
         float multiplier = 0.5f * width / (((float)rotated.z + (float)dist) * fov);//0.5f * width / (((float)rotated.z + (float)dist) * fov);
         rotated.x *= multiplier;
         rotated.y *= multiplier;//(rotated.y / (rotated.z + dist));
