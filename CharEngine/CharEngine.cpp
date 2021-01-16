@@ -22,7 +22,7 @@ float deltaTime = 0;
 ThreadPool pool(3);
 #endif
 
-int x = 0, y = 0;
+int x = 0, y = 180;
 
 void mouse_callback(int event, int xm, int ym, int flag, void* param)
 {
@@ -50,6 +50,9 @@ int main()
 
     auto t1 = Clock::now();
     setMouseCallback("Display window", mouse_callback);
+
+    Texture emptyTexture;
+    textures.push_back(emptyTexture);
 
     Main mainObj;
     mainObj.Start();

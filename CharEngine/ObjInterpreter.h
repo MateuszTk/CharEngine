@@ -25,12 +25,13 @@ namespace objLoader
         std::vector<std::string> names;
 
         //loading materials
-        vector<Material> materials;
+        vector<Material> l_materials;
         ifstream file(path + ".mtl");
         if (file.is_open())
         {
             Material mat;
             mat.name = "defaultxyz";
+            mat.textureId = 0;
 
             while (getline(file, line))
             {
@@ -38,9 +39,10 @@ namespace objLoader
                 {
                     if (mat.name != "defaultxyz")
                     {
-                        materials.push_back(mat);
+                        l_materials.push_back(mat);
                     }
-                    mat.texture.release();
+                    //mat.texture->textureData.release();
+                    mat.textureId = 0;
                     mat.name = line.substr(7, line.length() - 1);
                 }
                 else if(line[0] == 'K')
@@ -63,18 +65,39 @@ namespace objLoader
                 else if (line[0] == 'm' && line[5] =='d')
                 {
                     string texturePath = line.substr(7);
-                    Mat texture = imread(texturePath, IMREAD_COLOR);
-                    if (!texture.data)
+
+                    //checking if texture was not loaded before
+                    bool t = true;
+                    auto end = std::end(textures);
+                    for (auto tex = std::begin(textures); tex != end; ++tex)
                     {
-                        std::cout << "Could not open or find the image" << std::endl;
+                        if (tex->texturePath == texturePath)
+                        {
+                            mat.textureId = tex - textures.begin();
+                            t = false;
+                            break;
+                        }
                     }
-                    else
+
+                    if (t)
                     {
-                        mat.texture = texture;
+                        Mat texture = imread(texturePath, IMREAD_COLOR);
+                        if (!texture.data)
+                        {
+                            std::cout << "Could not open or find the image" << std::endl;
+                        }
+                        else
+                        {
+                            Texture tx;
+                            tx.textureData = texture;
+                            tx.texturePath = texturePath;
+                            textures.push_back(tx);
+                            mat.textureId = textures.size() - 1;
+                        }
                     }
                 }
             }
-            materials.push_back(mat);
+            l_materials.push_back(mat);
             file.close();
         }
         else cout << "Unable to load " << path + ".mtl";
@@ -158,7 +181,7 @@ namespace objLoader
                 case 'u':
                     //matching the material to the actor
                     std::string name = line.substr(7, line.length() - 1);
-                    for (Material mat : materials)
+                    for (Material mat : l_materials)
                     {
                         if (mat.name == name)
                         {

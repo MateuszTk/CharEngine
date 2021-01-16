@@ -49,13 +49,12 @@ public:
         //objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cube", "", pos);*/
     }
 
-    //Vector3 cpos = Vector3(0,0,0);
-    float s = 0;
+    //float s = 0;
 
     // Update is called once per frame
     void Update() override
     {
-        float speed = 0.001f;
+        /*float speed = 0.001f;
         s += speed * deltaTime;
         float x = sin(s) * 10;
 
@@ -63,7 +62,7 @@ public:
         for (auto act = std::begin(carv); act != end; ++act)
         {
             (*act)->getPosition()->UpdateV(x, 0, 0);
-        }
+        }*/
         //cameraPosition.UpdateV(-x, 0, 0);
         /*int d = 84 * 100;
         int segments = 3;

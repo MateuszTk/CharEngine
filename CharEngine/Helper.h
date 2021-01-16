@@ -206,12 +206,18 @@ struct Vertex
 	Vector3 transformed = Vector3(0, 0, 0);
 };
 
+struct Texture
+{
+	Mat textureData;
+	std::string texturePath = "";
+};
+
 struct Material
 {
 	std::string name;
 	Color color = Color(255, 255, 255);
 	float transparency = 1.0f;
-	Mat texture;
+	int textureId;
 };
 
 

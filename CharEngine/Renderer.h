@@ -10,6 +10,7 @@ using namespace cv;
 
 
 vector<Actor> actors;
+vector<Texture> textures;
 
 
 class Renderer
@@ -23,7 +24,6 @@ public:
     static void render()
     {
         vector<Actor*> passActors;
-        Material* mat;
 
         setRotation(cameraAngle);
 
@@ -77,7 +77,7 @@ public:
         for (pTriangle tri : *tria)
         {
             tmp = pTriangle2Triangle(&tri, actor->getVertices(), mat->color);
-            tdTriangle(*tmp, mat->transparency, &(mat->texture));
+            tdTriangle(*tmp, mat->transparency, &(textures[mat->textureId].textureData));
         }
     }
 
