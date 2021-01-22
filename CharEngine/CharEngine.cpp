@@ -12,14 +12,13 @@ typedef std::chrono::high_resolution_clock Clock;
 Vector3 cameraAngle = Vector3(0, 0, 0);
 Vector3 cameraPosition = Vector3(0, 0, 0);
 float depth[width][height];
-//float normals[width][height];
 Mat image;
 float deltaTime = 0;
 
 #ifdef MULTITHREADING
 // Create threads
-//int threads = thread::hardware_concurrency() - 1;
-ThreadPool pool(3);
+const int threads = thread::hardware_concurrency() - 1;
+ThreadPool pool(threads);
 #endif
 
 int x = 0, y = 180;
@@ -60,6 +59,8 @@ int main()
     uchar fpsDelay = 0;
     string fps;
     float avgDelta = 0;
+
+    Renderer::initializeTiles();
 
     while (true)
     {
@@ -106,7 +107,7 @@ int main()
         }
         else
             fpsDelay++;
-
+        
         Renderer::render();
         cv::putText(image, fps, Point(0, 12), FONT_HERSHEY_SIMPLEX, 0.5f, Scalar(255, 255, 255), 1);
         Screen::PrintFrame();

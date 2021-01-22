@@ -10,13 +10,13 @@ class Main : public Renderer
 {
 public:
 
-    vector<Actor*> carv;
+    //vector<Actor*> carv;
 
     // Use this for initialization
     void Start() override
     {
         auto car = objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\car");
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "0", Vector3(0, 0, 0));
+        /*objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "0", Vector3(0, 0, 0));
         objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "1", Vector3(-20, 0, 0));
         objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "2", Vector3(20, 0, 0));
 
@@ -26,27 +26,27 @@ public:
 
         objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "0", Vector3(0, 0, 20));
         objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "1", Vector3(-20, 0, 20));
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "2", Vector3(20, 0, 20));
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "2", Vector3(20, 0, 20));*/
         
 
-        carv = Actor::Find(&car, &actors);
+        //carv = Actor::Find(&car, &actors);
        
 
-        /*Material mat;
+       /* Material mat;
         Vector3 pos(0,0,0);
         mat.color.UpdateC(0, 255, 255);
-        mat.transparency = 1;*/
+        mat.transparency = 1;
 
-        /*for (int x = 0; x < 2; x++)
+        for (int x = 0; x < 2; x++)
         {
             for (int y = 0; y < 2; y++)
             {
                 pos.UpdateV(x * 2 - 1, 0, y * 2 - 1);
                 objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cube", "", pos);
             }
-        }*/
-        //pos.UpdateV(0, 0, 0);
-        //objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cube", "", pos);*/
+        }
+        pos.UpdateV(0, 2, 0);
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cube", "", pos);*/
     }
 
     //float s = 0;

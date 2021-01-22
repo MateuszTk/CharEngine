@@ -15,21 +15,20 @@ class Screen
 public:
 	static Point* PosToScreenCenter(Point* pos)
 	{
-		pos->x = halfOfWidth + pos->x;
+		pos->x += halfOfWidth;
 		pos->y = halfOfHeight - pos->y;
 		return pos;
 	}
 
 	static Vector3* PosToScreenCenter(Vector3* pos)
 	{
-		pos->x = halfOfWidth + pos->x;
+		pos->x += halfOfWidth;
 		pos->y = halfOfHeight - pos->y;
 		return pos;
 	}
 
 	static void SetPixelColor(Point* point, ColorA* color)
 	{
-		//PosToScreenCenter(&point);
 		int i = point->y * width * channels + point->x * channels;
 		image.data[i] = color->B;
 		image.data[i + 1] = color->G;
@@ -38,7 +37,6 @@ public:
 
 	static void MixPixelColor(Point* point, ColorA* color)
 	{
-		//PosToScreenCenter(&point);
 		int i = point->y * width * channels + point->x * channels;
 		image.data[i] = (uchar)(((image.data[i]) - color->B) * color->A + color->B);
 		image.data[i + 1] = (uchar)(((image.data[i + 1]) - color->G) * color->A + color->G);
@@ -47,7 +45,6 @@ public:
 
 	static void idSetPixelColor(int id, ColorA* color)
 	{
-		//int i = point->y * width * channels + point->x * channels;
 		image.data[id] = color->B;
 		image.data[id + 1] = color->G;
 		image.data[id + 2] = color->R;
@@ -55,7 +52,6 @@ public:
 
 	static void idMixPixelColor(int id, ColorA* color)
 	{
-		//int i = point->y * width * channels + point->x * channels;
 		image.data[id] = (uchar)(((image.data[id]) - color->B) * color->A + color->B);
 		image.data[id + 1] = (uchar)(((image.data[id + 1]) - color->G) * color->A + color->G);
 		image.data[id + 2] = (uchar)(((image.data[id + 2]) - color->R) * color->A + color->R);
@@ -63,7 +59,6 @@ public:
 
 	static void GetPixelColor(Point* point, ColorA* color, int cn, Mat* im)
 	{
-		//PosToScreenCenter(&point);
 		int i = point->y * im->rows * cn + point->x * cn;
 		color->B = im->data[i];
 		color->G = im->data[i + 1];
@@ -106,53 +101,30 @@ public:
 		fill_n(&depth[0][0], width * height, 255);
 	}
 
-	static void DrawTriangle(Vector3 v0, Vector3 v1, Vector3 v2, Color c0b, Color c1b, Color c2b, float transparency, Mat* texture, Vector2 uv0, Vector2 uv1, Vector2 uv2)
+	static void DrawTriangle(Triangle& triangle, Tile* tile, Mat* texture)
 	{
-		if (v0.z <= clipNear || v1.z <= clipNear || v2.z <= clipNear || v0.z > farMax || v1.z > farMax || v2.z > farMax)
-			return;
 
-		PosToScreenCenter(&v0);
-		PosToScreenCenter(&v1);
-		PosToScreenCenter(&v2);
-
-		fColor c0(c0b);
-		fColor c1(c1b);
-		fColor c2(c2b);
+		fColor c0(triangle.materialp->color);
+		fColor c1(triangle.materialp->color);
+		fColor c2(triangle.materialp->color);
 
 		//face normal check
-		Vector3 a(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z); //v1 - v0
-		Vector3 b(v2.x - v0.x, v2.y - v0.y, v2.z - v0.z); //v2 - v0
+		Vector3 a(triangle.v1.x - triangle.v0.x, triangle.v1.y - triangle.v0.y, triangle.v1.z - triangle.v0.z); //v1 - v0
+		Vector3 b(triangle.v2.x - triangle.v0.x, triangle.v2.y - triangle.v0.y, triangle.v2.z - triangle.v0.z); //v2 - v0
 		Vector3 normal = Vector3(0, 0, a.x * b.y - a.y * b.x);
 
-		
+
 		if (normal.z < 0)
 		{
-			//bounding box
-			Point bbmax(0, 0);
-			Point bbmin(width - 1, height - 1);
-			Vector3* points[3] = { &v0, &v1, &v2 };
-			for (int i = 0; i < 3; ++i)
-			{
-				if (points[i]->x < bbmin.x)
-					bbmin.x = points[i]->x;
-				if (points[i]->y < bbmin.y)
-					bbmin.y = points[i]->y;
-				if (points[i]->x > bbmax.x)
-					bbmax.x = points[i]->x;
-				if (points[i]->y > bbmax.y)
-					bbmax.y = points[i]->y;
-			}
-			if (bbmax.x > width - 1) bbmax.x = width - 1;
-			if (bbmax.y > height - 1) bbmax.y = height - 1;
-			if (bbmin.x < 0) bbmin.x = 0;
-			if (bbmin.y < 0) bbmin.y = 0;
-			//SetPixelColor(&bbmin, &Color(0, 255, 0));
-			//SetPixelColor(&bbmax, &Color(255, 0, 0));
+
 
 #if defined SMART_AVX
 			//true - use AVX
 			const bool avxMode = bbmax.y - bbmin.y > 8;
 #endif
+
+			Point bbmin(max(triangle.bbmin.x, tile->pmin.x), max(triangle.bbmin.y, tile->pmin.y));
+			Point bbmax(min(triangle.bbmax.x, tile->pmax.x), min(triangle.bbmax.y, tile->pmax.y));
 
 			//face specularity effect
 			normal.x = a.y * b.z - a.z * b.y;
@@ -163,16 +135,16 @@ public:
 
 			bool inside = true;
 			bool end = false;
-			
-			const float area = (v2.x - v0.x) * (v1.y - v0.y) - (v2.y - v0.y) * (v1.x - v0.x);
 
-			ColorA cx(0, 0, 0, transparency);
+			const float area = (triangle.v2.x - triangle.v0.x) * (triangle.v1.y - triangle.v0.y) - (triangle.v2.y - triangle.v0.y) * (triangle.v1.x - triangle.v0.x);
+
+			ColorA cx(0, 0, 0, triangle.materialp->transparency);
 			c0 *= specularity;
 			c1 *= specularity;
 			c2 *= specularity;
 #if !defined AVX || defined SMART_AVX
 
-			void (*pixel_placer)(Point*, ColorA*) = (transparency == 0.0f) ? &SetPixelColor : &MixPixelColor;
+			void (*pixel_placer)(Point*, ColorA*) = (triangle.materialp->transparency == 0.0f) ? &SetPixelColor : &MixPixelColor;
 			Point pt;
 			Point p1;
 			float u, v;
@@ -181,17 +153,17 @@ public:
 #endif // !AVX
 
 			// divide vertex-attribute by the vertex z-coordinate
-			c0.R /= v0.z, c0.G /= v0.z, c0.B /= v0.z;
-			c1.R /= v1.z, c1.G /= v1.z, c1.B /= v1.z;
-			c2.R /= v2.z, c2.G /= v2.z, c2.B /= v2.z;
+			c0.R /= triangle.v0.z, c0.G /= triangle.v0.z, c0.B /= triangle.v0.z;
+			c1.R /= triangle.v1.z, c1.G /= triangle.v1.z, c1.B /= triangle.v1.z;
+			c2.R /= triangle.v2.z, c2.G /= triangle.v2.z, c2.B /= triangle.v2.z;
 
 			//Vector2 uv0(0,0), uv1(1,0), uv2(0,1);
-			uv0.x /= v0.z, uv0.y /= v0.z;
-			uv1.x /= v1.z, uv1.y /= v1.z;
-			uv2.x /= v2.z, uv2.y /= v2.z;
+			triangle.uv0.x /= triangle.v0.z, triangle.uv0.y /= triangle.v0.z;
+			triangle.uv1.x /= triangle.v1.z, triangle.uv1.y /= triangle.v1.z;
+			triangle.uv2.x /= triangle.v2.z, triangle.uv2.y /= triangle.v2.z;
 
 			// pre-compute 1 over z
-			v0.z = 1 / v0.z, v1.z = 1 / v1.z, v2.z = 1 / v2.z;
+			triangle.v0.z = 1 / triangle.v0.z, triangle.v1.z = 1 / triangle.v1.z, triangle.v2.z = 1 / triangle.v2.z;
 
 			int cn = texture->channels();
 			bool mode = !texture->empty();
@@ -200,32 +172,32 @@ public:
 #ifdef AVX
 
 
-				//__m256* AVXset2 = new __m256[20];
-				//__m256* subResult = new __m256[20];
-				const __m256 subResult_1 = _mm256_set1_ps(v1.y - v0.y);
-				const __m256 subResult_3 = _mm256_set1_ps(v1.x - v0.x);
-				const __m256 subResult_5 = _mm256_set1_ps(v2.y - v1.y);
-				const __m256 subResult_7 = _mm256_set1_ps(v2.x - v1.x);
-				const __m256 subResult_9 = _mm256_set1_ps(v0.y - v2.y);
-				const __m256 subResult_11 = _mm256_set1_ps(v0.x - v2.x);
+			//__m256* AVXset2 = new __m256[20];
+			//__m256* subResult = new __m256[20];
+			const __m256 subResult_1 = _mm256_set1_ps(triangle.v1.y - triangle.v0.y);
+			const __m256 subResult_3 = _mm256_set1_ps(triangle.v1.x - triangle.v0.x);
+			const __m256 subResult_5 = _mm256_set1_ps(triangle.v2.y - triangle.v1.y);
+			const __m256 subResult_7 = _mm256_set1_ps(triangle.v2.x - triangle.v1.x);
+			const __m256 subResult_9 = _mm256_set1_ps(triangle.v0.y - triangle.v2.y);
+			const __m256 subResult_11 = _mm256_set1_ps(triangle.v0.x - triangle.v2.x);
 
-				//----------
-				const __m256 AVXset2_0 = _mm256_set1_ps(v0.x);
-				const __m256 AVXset2_2 = _mm256_set1_ps(v0.y);
-				const __m256 AVXset2_4 = _mm256_set1_ps(v1.x);
-				const __m256 AVXset2_6 = _mm256_set1_ps(v1.y);
-				const __m256 AVXset2_8 = _mm256_set1_ps(v2.x);
-				const __m256 AVXset2_10 = _mm256_set1_ps(v2.y);
-			
+			//----------
+			const __m256 AVXset2_0 = _mm256_set1_ps(triangle.v0.x);
+			const __m256 AVXset2_2 = _mm256_set1_ps(triangle.v0.y);
+			const __m256 AVXset2_4 = _mm256_set1_ps(triangle.v1.x);
+			const __m256 AVXset2_6 = _mm256_set1_ps(triangle.v1.y);
+			const __m256 AVXset2_8 = _mm256_set1_ps(triangle.v2.x);
+			const __m256 AVXset2_10 = _mm256_set1_ps(triangle.v2.y);
+
 
 			__m256* ptx = 0;
 			__m256* pty = 0;
 			const __m256 textureRows = _mm256_set1_ps(texture->rows);
 			const __m256 textureCols = _mm256_set1_ps(texture->cols - 1);
 
-			__m256 v0z = _mm256_set1_ps(v0.z);
-			__m256 v1z = _mm256_set1_ps(v1.z);
-			__m256 v2z = _mm256_set1_ps(v2.z);
+			__m256 v0z = _mm256_set1_ps(triangle.v0.z);
+			__m256 v1z = _mm256_set1_ps(triangle.v1.z);
+			__m256 v2z = _mm256_set1_ps(triangle.v2.z);
 
 			const __m256 areaSet = _mm256_set1_ps(area);
 
@@ -240,12 +212,12 @@ public:
 			const __m256 c2G = _mm256_set1_ps(c2.G);
 			const __m256 c2B = _mm256_set1_ps(c2.B);
 
-			const __m256 uv0x = _mm256_set1_ps(uv0.x);
-			const __m256 uv1x = _mm256_set1_ps(uv1.x);
-			const __m256 uv2x = _mm256_set1_ps(uv2.x);
-			const __m256 uv0y = _mm256_set1_ps(uv0.y);
-			const __m256 uv1y = _mm256_set1_ps(uv1.y);
-			const __m256 uv2y = _mm256_set1_ps(uv2.y);
+			const __m256 uv0x = _mm256_set1_ps(triangle.uv0.x);
+			const __m256 uv1x = _mm256_set1_ps(triangle.uv1.x);
+			const __m256 uv2x = _mm256_set1_ps(triangle.uv2.x);
+			const __m256 uv0y = _mm256_set1_ps(triangle.uv0.y);
+			const __m256 uv1y = _mm256_set1_ps(triangle.uv1.y);
+			const __m256 uv2y = _mm256_set1_ps(triangle.uv2.y);
 			float* cxR = 0;
 			float* cxG = 0;
 			float* cxB = 0;
@@ -255,8 +227,8 @@ public:
 
 			__m256 avxset0, avxset1;
 
-			void (*AVXpixel_placer)(int, ColorA*) = (transparency == 0.0f) ? &idSetPixelColor : &idMixPixelColor;
-			
+			void (*AVXpixel_placer)(int, ColorA*) = (triangle.materialp->transparency == 0.0f) ? &idSetPixelColor : &idMixPixelColor;
+
 #endif // AVX
 
 #if defined AVX && defined SMART_AVX
@@ -381,6 +353,7 @@ public:
 										}
 
 										(*AVXpixel_placer)(pixelId[i], &cx);
+										//idSetPixelColor(100* width* channels + 100 * channels, &cx);
 										depth[x][y] = ((float*)&depthl_256)[i];
 									}
 									end = true;
@@ -394,17 +367,17 @@ public:
 								if (y >= height) break;
 							}
 							if (i < 8) break;
-						}
+					}
 						else
 						{
 							y += 8;
 						}
-					}
 				}
 			}
+		}
 #endif // AVX
 
-		}
 	}
+}
 };
 

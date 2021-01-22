@@ -15,7 +15,6 @@ public:
 
     ThreadPool(int threads) : shutdown_(false)
     {
-        //shutdown_ = false;
         // Create the specified number of threads
         threads_.reserve(threads);
         occupied_threads_.reserve(threads);

@@ -16,8 +16,8 @@
 using namespace cv;
 using namespace std;
 
-const int width = 1280;
-const int height = 720;
+const int width = 1920;
+const int height = 1080;
 const int halfOfWidth = width * 0.5f;
 const int halfOfHeight = height * 0.5f;
 float dist = 8;
@@ -26,6 +26,10 @@ const int farMax = 255;
 const int clipNear = 1;
 const int channels = 3;
 
+const int numberOfTilesX = 11;
+const int numberOfTilesY = 1;
+const int tileWidth = width / numberOfTilesX;
+const int tileHeight = height / numberOfTilesY;
 
 struct Color
 {
@@ -174,17 +178,26 @@ struct Vector3
 	}
 };
 
+struct Material
+{
+	std::string name;
+	Color color = Color(255, 255, 255);
+	float transparency = 1.0f;
+	int textureId;
+};
+
 struct Triangle
 {
+	Vector3 v0= Vector3(0, 0, 0);
 	Vector3 v1 = Vector3(0, 0, 0);
 	Vector3 v2 = Vector3(0, 0, 0);
-	Vector3 v3 = Vector3(0, 0, 0);
-	Color vertexColor1 = Color(255, 255, 255);
-	Color vertexColor2 = Color(255, 255, 255);
-	Color vertexColor3 = Color(255, 255, 255);
+
+	Vector2 uv0 = Vector2(0, 0);
 	Vector2 uv1 = Vector2(0, 0);
 	Vector2 uv2 = Vector2(0, 0);
-	Vector2 uv3 = Vector2(0, 0);
+	Point bbmin;
+	Point bbmax;
+	Material* materialp;
 };
 
 struct pTriangle
@@ -195,9 +208,7 @@ struct pTriangle
 	Vector2 uv1 = Vector2(0, 0);
 	Vector2 uv2 = Vector2(0, 0);
 	Vector2 uv3 = Vector2(0, 0);
-	/*int uv_v1 = -1;
-	int uv_v2 = -1;
-	int uv_v3 = -1;*/
+	Triangle triangleData;
 };
 
 struct Vertex
@@ -212,15 +223,14 @@ struct Texture
 	std::string texturePath = "";
 };
 
-struct Material
+
+struct Tile
 {
-	std::string name;
-	Color color = Color(255, 255, 255);
-	float transparency = 1.0f;
-	int textureId;
+	Point pmin;
+	Point pmax;
+	vector<Triangle*> assignedTriangles;
+	int aT_len = 0;
 };
-
-
 
 extern float depth[width][height];
 //extern float normals[width][height];
