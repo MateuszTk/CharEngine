@@ -15,19 +15,19 @@ public:
     // Use this for initialization
     void Start() override
     {
+        int d = 100;
         auto car = objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\car");
-        /*objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "0", Vector3(0, 0, 0));
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "1", Vector3(-20, 0, 0));
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "2", Vector3(20, 0, 0));
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "0", Vector3(0, 0, 0));
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "1", Vector3(-d, 0, 0));
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "2", Vector3(d, 0, 0));
 
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "0", Vector3(0, 0, -20));
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "1", Vector3(-20, 0, -20));
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "2", Vector3(20, 0, -20));
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "0", Vector3(0, 0, -d));
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "1", Vector3(-d, 0, -d));
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "2", Vector3(d, 0, -d));
 
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "0", Vector3(0, 0, 20));
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "1", Vector3(-20, 0, 20));
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\sidewalk", "2", Vector3(20, 0, 20));*/
-        
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "0", Vector3(0, 0, d));
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "1", Vector3(-d, 0, d));
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "2", Vector3(d, 0, d));        
 
         //carv = Actor::Find(&car, &actors);
        

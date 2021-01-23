@@ -80,16 +80,15 @@ protected:
                 while (!shutdown_ && jobs_.empty())
                     condVar_.wait(l);
 
-                occupied_threads_[i] = true;
+                //occupied_threads_[i] = true;
 
                 if (jobs_.empty())
                 {
                     std::cerr << "Thread " << i << " terminates" << std::endl;
                     return;
                 }
-
-                //std::cerr << "Thread " << i << " does a job" << std::endl;
-                
+               
+                occupied_threads_[i] = true;
                 job = std::move(jobs_.front());
                 jobs_.pop();
                 

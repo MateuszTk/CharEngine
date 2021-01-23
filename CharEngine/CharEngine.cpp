@@ -33,9 +33,9 @@ void mouse_callback(int event, int xm, int ym, int flag, void* param)
     else if (event == EVENT_MOUSEWHEEL)
     {
         if (getMouseWheelDelta(flag) > 0)
-            dist -= 0.4f;
+            dist -= 0.8f;
         else
-            dist += 0.4f;
+            dist += 0.8f;
     }
 }
 

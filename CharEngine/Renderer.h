@@ -11,7 +11,7 @@ using namespace cv;
 
 vector<Actor> actors;
 vector<Texture> textures;
-vector<Tile> tiles;
+vector<Tile> tiles(numberOfTilesX);
 
 class Renderer
 {
@@ -31,23 +31,24 @@ public:
         auto end = std::end(actors);
         for (auto act = std::begin(actors); act != end; ++act)
         {
+#if defined(TRANSPARENCY)
             if (act->getMaterial()->transparency == 0.0f)
             {
                 pool.doJob(std::bind(submitActor, &*act));
             }
             else
             {
-                //passActors.push_back(&(*act));
+                passActors.push_back(&(*act));
             }
+#else
+            pool.doJob(std::bind(submitActor, &*act));
+#endif
+
+            
         }
 
         while (!pool.isFinished()) { /*wait for all threads to finish*/ }
 
-        /*auto end2 = std::end(passActors);
-        for (auto act = std::begin(passActors); act != end2; ++act)
-        {
-            pool.doJob(std::bind(submitActor, *act));
-        }*/
 
         //int q = 0;
         auto end0 = std::end(tiles);
@@ -60,14 +61,24 @@ public:
 
         while (!pool.isFinished()) { /*wait for all threads to finish*/ }
 
-        /*//transparent pass
+#if defined(TRANSPARENCY)
+        //transparent pass
+        auto end2 = std::end(passActors);
+        for (auto act = std::begin(passActors); act != end2; ++act)
+        {
+            pool.doJob(std::bind(submitActor, *act));
+        }
+
+        while (!pool.isFinished()) { /*wait for all threads to finish*/ }
+
         end0 = std::end(tiles);
         for (auto tile = std::begin(tiles); tile != end0; ++tile)
         {
-            //if(q%2 == 0)
             pool.doJob(std::bind(renderTile, &*tile));
-           // q++;
-        }*/
+        }
+
+        while (!pool.isFinished()) { /*wait for all threads to finish*/ }
+#endif
 
     }
 
@@ -87,15 +98,14 @@ public:
 
     static void initializeTiles()
     {
-        Tile tile;
+        //Tile tile;
         for (int x = 0; x < numberOfTilesX; x++)
         {
             for (int y = 0; y < numberOfTilesY; y++)
             {
-                tile.pmin = Point(x * tileWidth, y * tileHeight);
-                tile.pmax = Point(x * tileWidth + tileWidth, y * tileHeight + tileHeight);
-                tiles.push_back(tile);
-                tiles[x].assignedTriangles.reserve(100000);
+                tiles[x].pmin = Point(x * tileWidth, y * tileHeight);
+                tiles[x].pmax = Point(x * tileWidth + tileWidth, y * tileHeight + tileHeight);
+
                 for (int i = 0; i < 100000; i++)
                 {
                     tiles[x].assignedTriangles.push_back(0);
@@ -112,9 +122,6 @@ private:
 protected:
     
     static Screen screen;
-
-    static std::mutex lock;
-    //static vector<Triangle> triangles;
 
     static void renderTile(Tile* tile)
     {
@@ -154,6 +161,17 @@ protected:
         Screen::PosToScreenCenter(&tri.v1);
         Screen::PosToScreenCenter(&tri.v2);
 
+        //face normal check
+        Vector3 a(tri.v1.x - tri.v0.x, tri.v1.y - tri.v0.y, tri.v1.z - tri.v0.z); //v1 - v0
+        Vector3 b(tri.v2.x - tri.v0.x, tri.v2.y - tri.v0.y, tri.v2.z - tri.v0.z); //v2 - v0
+        tri.normal.z = a.x * b.y - a.y * b.x;
+        if (tri.normal.z >= 0)
+            return;
+
+        tri.normal.x = a.y * b.z - a.z * b.y;
+        tri.normal.y = a.z * b.x - a.x * b.z;
+        tri.normal.Normalize();
+
         tri.materialp = mat;
         tri.uv0 = ptriangle->uv1;
         tri.uv1 = ptriangle->uv2;
@@ -186,12 +204,7 @@ protected:
         t = (t > numberOfTilesX - 1) ? numberOfTilesX - 1: t;
         for (int x = tri.bbmin.x / tileWidth; x <= t; x++)
         {
-            //for (int y = floorf(tri.bbmin.y / tileHeight); y < numberOfTilesY; y++)//tiles[x + y * numberOfTilesX]
-            lock.lock();
-            tiles[x].assignedTriangles[tiles[x].aT_len] = &tri;
-            tiles[x].aT_len++;
-            lock.unlock();
-
+            tiles[x].TS_addTriangle(&tri);
         }
         
         //return tri;
@@ -231,9 +244,9 @@ protected:
     {
 
         Vector3 rotated = *rotateWorld(x, y, z);
-        float multiplier = 0.5f * width / (((float)rotated.z + (float)dist) * fov);//0.5f * width / (((float)rotated.z + (float)dist) * fov);
+        float multiplier = 0.5f * width / (((float)rotated.z + (float)dist) * fov);
         rotated.x *= multiplier;
-        rotated.y *= multiplier;//(rotated.y / (rotated.z + dist));
+        rotated.y *= multiplier;
         return rotated;
     }
 
@@ -249,10 +262,7 @@ protected:
 
     static void tdTriangle(Triangle triangle, Tile* tile)
     {
-        
-
         Screen::DrawTriangle(triangle, tile, &(textures[(triangle).materialp->textureId].textureData));
-        //Screen::DrawTriangle(triangle.v0, triangle.v1, triangle.v2, (triangle.materialp->color), (triangle.materialp->color), (triangle.materialp->color), (triangle.materialp->transparency), &textures[triangle.materialp->textureId].textureData, triangle.uv0, triangle.uv1, triangle.uv2);
 
         //debug
         //putText(image, to_string(p3v.z), *Screen::PosToScreenCenter(&Point(p3v.x, p3v.y)), FONT_HERSHEY_SIMPLEX, 0.5f, Scalar(255, 255, 255), 1);
@@ -263,6 +273,3 @@ protected:
 float Renderer::cosCamX = 0, Renderer::sinCamX = 0;
 float Renderer::cosCamY = 0, Renderer::sinCamY = 0;
 float Renderer::cosCamZ = 0, Renderer::sinCamZ = 0;
-std::mutex Renderer::lock;
-//vector<Triangle> Renderer::triangles;
-//Screen Renderer::screen;

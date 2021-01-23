@@ -12,6 +12,7 @@
 
 #define AVX
 #define MULTITHREADING
+//#define TRANSPARENCY
 
 using namespace cv;
 using namespace std;
@@ -20,7 +21,7 @@ const int width = 1920;
 const int height = 1080;
 const int halfOfWidth = width * 0.5f;
 const int halfOfHeight = height * 0.5f;
-float dist = 8;
+float dist = 100;
 const float fov = (float)tan(80 / 2);
 const int farMax = 255;
 const int clipNear = 1;
@@ -188,7 +189,7 @@ struct Material
 
 struct Triangle
 {
-	Vector3 v0= Vector3(0, 0, 0);
+	Vector3 v0 = Vector3(0, 0, 0);
 	Vector3 v1 = Vector3(0, 0, 0);
 	Vector3 v2 = Vector3(0, 0, 0);
 
@@ -198,6 +199,8 @@ struct Triangle
 	Point bbmin;
 	Point bbmax;
 	Material* materialp;
+
+	Vector3 normal = Vector3(0, 0, 0);
 };
 
 struct pTriangle
@@ -230,10 +233,22 @@ struct Tile
 	Point pmax;
 	vector<Triangle*> assignedTriangles;
 	int aT_len = 0;
+
+	//thread-safe add
+	void TS_addTriangle(Triangle* tri)
+	{
+		l_lock.lock();
+		assignedTriangles[aT_len] = tri;
+		aT_len++;
+		l_lock.unlock();
+	}
+
+private:
+	std::mutex l_lock;
+
 };
 
 extern float depth[width][height];
-//extern float normals[width][height];
 extern Mat image;
 extern Vector3 cameraAngle;
 extern Vector3 cameraPosition;
