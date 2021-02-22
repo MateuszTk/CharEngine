@@ -4,8 +4,6 @@
 #include "AVX.h"
 
 
-//#define SMART_AVX
-
 //using namespace helper;
 using namespace cv;
 
@@ -230,22 +228,22 @@ public:
 				{
 					inside = true;
 					//checking if the pixel is inside the triangle (cross product)
-					inside = (e3 = (x - v0.x) * (v1.y - v0.y) - (y - v0.y) * (v1.x - v0.x)) >= 0;
+					inside = (e3 = (x - triangle.v0.x) * (triangle.v1.y - triangle.v0.y) - (y - triangle.v0.y) * (triangle.v1.x - triangle.v0.x)) >= 0;
 					if (!inside)
 						continue;
 
-					inside = (e1 = (x - v1.x) * (v2.y - v1.y) - (y - v1.y) * (v2.x - v1.x)) >= 0;
+					inside = (e1 = (x - triangle.v1.x) * (triangle.v2.y - triangle.v1.y) - (y - triangle.v1.y) * (triangle.v2.x - triangle.v1.x)) >= 0;
 					if (!inside)
 						continue;
 
-					inside = (e2 = (x - v2.x) * (v0.y - v2.y) - (y - v2.y) * (v0.x - v2.x)) >= 0;
+					inside = (e2 = (x - triangle.v2.x) * (triangle.v0.y - triangle.v2.y) - (y - triangle.v2.y) * (triangle.v0.x - triangle.v2.x)) >= 0;
 
 					if (inside)
 					{
 						e1 /= area;
 						e2 /= area;
 						e3 /= area;
-						depthl = 1 / (e1 * v0.z + e2 * v1.z + e3 * v2.z);
+						depthl = 1 / (e1 * triangle.v0.z + e2 * triangle.v1.z + e3 * triangle.v2.z);
 						if (depth[x][y] > depthl)
 						{
 							p1.x = x;
@@ -253,8 +251,8 @@ public:
 
 							if (mode)
 							{
-								u = (e1 * uv0.x + e2 * uv1.x + e3 * uv2.x) * depthl;
-								v = (e1 * uv0.y + e2 * uv1.y + e3 * uv2.y) * depthl;
+								u = (e1 * triangle.uv0.x + e2 * triangle.uv1.x + e3 * triangle.uv2.x) * depthl;
+								v = (e1 * triangle.uv0.y + e2 * triangle.uv1.y + e3 * triangle.uv2.y) * depthl;
 								pt.x = u * texture->rows;
 								pt.y = v * (texture->cols - 1);
 								GetPixelColor(&pt, &cx, cn, texture);

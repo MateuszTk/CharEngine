@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef AVX
+
 #include <immintrin.h>
 #include "Helper.h"
 
@@ -52,3 +54,4 @@ namespace avx
 		return (float*)&_mm256_mul_ps(_mm256_fmadd_ps(_mm256_floor_ps(y), rows, _mm256_floor_ps(x)), cn);
 	}
 }
+#endif // AVX

@@ -10,7 +10,7 @@
 #include <vector>
 #include "ThreadPool.h"
 
-#define AVX
+//#define AVX
 #define MULTITHREADING
 //#define TRANSPARENCY
 
