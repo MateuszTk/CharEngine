@@ -101,6 +101,7 @@ public:
 
 	static void DrawTriangle(Triangle& triangle, Tile* tile, Mat* texture)
 	{
+		bool useDepth = triangle.type != ActorType::Skybox;
 
 		fColor c0(triangle.materialp->color);
 		fColor c1(triangle.materialp->color);
@@ -325,7 +326,26 @@ public:
 						{
 							if (((insideI >> i) & 1) == 1)
 							{
-								if (depth[x][y] > ((float*)&depthl_256)[i])
+								if (useDepth)
+								{
+									if (depth[x][y] > ((float*)&depthl_256)[i])
+									{
+										if (mode)
+										{
+											idGetPixelColor(texturePixelId[i], &cx, texture);
+										}
+										else
+										{
+											cx.R = (uchar)cxR[i];
+											cx.G = (uchar)cxG[i];
+											cx.B = (uchar)cxB[i];
+										}
+
+										(*AVXpixel_placer)(pixelId[i], &cx);
+										depth[x][y] = ((float*)&depthl_256)[i];
+									}
+								}
+								else
 								{
 									if (mode)
 									{
@@ -337,10 +357,7 @@ public:
 										cx.G = (uchar)cxG[i];
 										cx.B = (uchar)cxB[i];
 									}
-
 									(*AVXpixel_placer)(pixelId[i], &cx);
-									//idSetPixelColor(100* width* channels + 100 * channels, &cx);
-									depth[x][y] = ((float*)&depthl_256)[i];
 								}
 								end = true;
 							}

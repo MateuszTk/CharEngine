@@ -11,6 +11,7 @@ private:
     Vector3 position = Vector3(0, 0, 0);
     std::string name;
     Material material;
+    ActorType actorType;
 
 public:
     std::vector<pTriangle>* getTriangles()
@@ -36,6 +37,11 @@ public:
     Material* getMaterial()
     {
         return &material;
+    }
+
+    ActorType* getActorType()
+    {
+        return &actorType;
     }
 
     static vector<Actor*> Find(std::vector<std::string>* names, std::vector<Actor>* actors)

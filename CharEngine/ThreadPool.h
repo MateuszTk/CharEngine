@@ -16,12 +16,14 @@ public:
     ThreadPool(int threads) : shutdown_(false)
     {
         // Create the specified number of threads
+        threads_n = threads;
+        occupied_threads_ = new bool[threads];
         threads_.reserve(threads);
-        occupied_threads_.reserve(threads);
+
         for (int i = 0; i < threads; ++i)
         {
             threads_.emplace_back(std::bind(&ThreadPool::threadEntry, this, i));
-            occupied_threads_.push_back(false);
+            occupied_threads_[i] = false;
         }
     }
 
@@ -53,10 +55,9 @@ public:
     bool isFinished()
     {
         bool v = true;
-        auto th2 = std::end(occupied_threads_);
-        for (auto th = std::begin(occupied_threads_); th != th2; ++th)
+        for (int i = 0; i < threads_n; i++)
         {
-            if (*th == true)
+            if (occupied_threads_[i] == true)
             {
                 v = false;
                 break;
@@ -106,5 +107,6 @@ protected:
     bool shutdown_;
     std::queue <std::function <void(void)>> jobs_;
     std::vector <std::thread> threads_;
-    std::vector <bool> occupied_threads_;
+    bool* occupied_threads_;
+    int threads_n;
 };
