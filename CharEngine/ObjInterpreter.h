@@ -19,7 +19,7 @@ namespace objLoader
     }
 
     //returns loaded actors names
-	std::vector<std::string> LoadObj(string path, string actorName = "", Vector3 position = Vector3(0, 0, 0))
+	std::vector<std::string> LoadObj(string path, string actorName = "", Vector3 position = Vector3(0, 0, 0), ActorType type = ActorType::Common)
 	{
         string line;
         std::vector<std::string> names;
@@ -107,6 +107,7 @@ namespace objLoader
         if (fileo.is_open())
         {
             Actor act;
+            *act.getActorType() = type;
             *(act.getName()) = "defaultxyz";
             Vector3 vertex = Vector3(0,0,0);
             pTriangle tri;

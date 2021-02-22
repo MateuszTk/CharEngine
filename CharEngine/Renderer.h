@@ -27,6 +27,7 @@ public:
         clearTiles();
         setRotation(cameraAngle);
 
+
         //opaque pass
         auto end = std::end(actors);
         for (auto act = std::begin(actors); act != end; ++act)
@@ -85,20 +86,18 @@ public:
     static void submitActor(Actor* actor)
     {
         vector<pTriangle>* const tria = actor->getTriangles();
-        TranslateMesh(actor->getVertices(), actor->getPosition());
-        //Triangle* tmp;
+        auto type = actor->getActorType();
+        TranslateMesh(actor->getVertices(), actor->getPosition(), type);
 
         auto end = std::end(*tria);
         for (auto tri = std::begin(*tria); tri != end; ++tri)
         {
-            pTriangle2Triangle(&*tri, actor->getVertices(), actor->getMaterial(), tri->triangleData);
-            //tdTriangle(*tmp, mat->transparency, &(textures[mat->textureId].textureData));
+            pTriangle2Triangle(&*tri, actor->getVertices(), actor->getMaterial(), tri->triangleData, type);
         }
     }
 
     static void initializeTiles()
     {
-        //Tile tile;
         for (int x = 0; x < numberOfTilesX; x++)
         {
             for (int y = 0; y < numberOfTilesY; y++)
@@ -125,8 +124,8 @@ protected:
 
     static void renderTile(Tile* tile)
     {
-        //auto end0 = std::end(tile->assignedTriangles);
-        for (int i = tile->aT_len - 1; i >= 0; i--)//for (auto tilei = std::begin(tile->assignedTriangles); tilei != end0; ++tilei)
+        const int len = tile->aT_len;
+        for (int i = 0; i < len; i++)
         {
             tdTriangle(*(tile->assignedTriangles[i]), tile);
         }
@@ -137,12 +136,12 @@ protected:
         auto endt = std::end(tiles);
         for (auto tile = std::begin(tiles); tile != endt; ++tile)
         {
-            tile->aT_len = 0;//tile->assignedTriangles.clear();//
+            tile->aT_len = 0;
         }
     }
 
 
-    static void pTriangle2Triangle(pTriangle* ptriangle, vector<Vertex>* vertices, Material* mat, Triangle& tri)
+    static void pTriangle2Triangle(pTriangle* ptriangle, vector<Vertex>* vertices, Material* mat, Triangle& tri, ActorType* type)
     {
         //Triangle tri;
         tri.v0 = (*vertices)[ptriangle->v1].transformed;
@@ -150,13 +149,25 @@ protected:
         tri.v2 = (*vertices)[ptriangle->v3].transformed;
 
         float factor = 255.0f / farMax;
-        tri.v0.z = (tri.v0.z + dist) * factor;
-        tri.v1.z = (tri.v1.z + dist) * factor;
-        tri.v2.z = (tri.v2.z + dist) * factor;
+        if (*type != ActorType::Skybox)
+        {
+            tri.v0.z = (tri.v0.z + dist) * factor;
+            tri.v1.z = (tri.v1.z + dist) * factor;
+            tri.v2.z = (tri.v2.z + dist) * factor;
+        }
+        else
+        {
+            tri.v0.z *= factor;
+            tri.v1.z *= factor;
+            tri.v2.z *= factor;
+        }
 
+        //clipping plane intersection
         if (tri.v0.z <= clipNear || tri.v1.z <= clipNear || tri.v2.z <= clipNear || tri.v0.z > farMax || tri.v1.z > farMax || tri.v2.z > farMax)
             return;
 
+
+        //===========================
         Screen::PosToScreenCenter(&tri.v0);
         Screen::PosToScreenCenter(&tri.v1);
         Screen::PosToScreenCenter(&tri.v2);
@@ -176,6 +187,8 @@ protected:
         tri.uv0 = ptriangle->uv1;
         tri.uv1 = ptriangle->uv2;
         tri.uv2 = ptriangle->uv3;
+
+        tri.type = *type;
 
         //bounding box
         tri.bbmax = Point(0, 0);
@@ -240,22 +253,32 @@ protected:
         return &coord;
     }
 
-    static Vector3 TdToScreen(float x, float y, float z)
+    static Vector3 TdToScreen(float x, float y, float z, float cdist)
     {
 
         Vector3 rotated = *rotateWorld(x, y, z);
-        float multiplier = 0.5f * width / (((float)rotated.z + (float)dist) * fov);
+        float multiplier = -(0.5f * width / ((rotated.z + cdist) * fov));//-fabsf
         rotated.x *= multiplier;
         rotated.y *= multiplier;
         return rotated;
     }
 
-    static void TranslateMesh(std::vector<Vertex>* vertices, Vector3* position)
+    static void TranslateMesh(std::vector<Vertex>* vertices, Vector3* position, ActorType* atype)
     {
         auto end = std::end(*vertices);
-        for (auto vertex = std::begin(*vertices); vertex != end; ++vertex)
+        if (*atype == ActorType::Common)
         {
-            vertex->transformed = TdToScreen(vertex->raw.x + cameraPosition.x + position->x, vertex->raw.y + cameraPosition.y + position->y, vertex->raw.z + cameraPosition.z + position->z);
+            for (auto vertex = std::begin(*vertices); vertex != end; ++vertex)
+            {
+                vertex->transformed = TdToScreen(vertex->raw.x + cameraPosition.x + position->x, vertex->raw.y + cameraPosition.y + position->y, vertex->raw.z + cameraPosition.z + position->z, dist);
+            }
+        }
+        else
+        {
+            for (auto vertex = std::begin(*vertices); vertex != end; ++vertex)
+            {
+                vertex->transformed = TdToScreen(vertex->raw.x, vertex->raw.y, vertex->raw.z, 0.0f);
+            }
         }
     }
 

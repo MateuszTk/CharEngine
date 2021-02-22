@@ -10,27 +10,33 @@
 #include <vector>
 #include "ThreadPool.h"
 
-#define AVX
+//#define AVX
 #define MULTITHREADING
 //#define TRANSPARENCY
 
 using namespace cv;
 using namespace std;
 
-const int width = 1920;
-const int height = 1080;
+const int width = 1280;
+const int height = 720;
 const int halfOfWidth = width * 0.5f;
 const int halfOfHeight = height * 0.5f;
-float dist = 100;
-const float fov = (float)tan(80 / 2);
+float dist = 16;
+const float fov = 1.0f;//(float)tan(80 / 2);
 const int farMax = 255;
-const int clipNear = 1;
+const int clipNear = 0;
 const int channels = 3;
 
 const int numberOfTilesX = 11;
 const int numberOfTilesY = 1;
 const int tileWidth = width / numberOfTilesX;
 const int tileHeight = height / numberOfTilesY;
+
+enum class ActorType
+{
+	Common,
+	Skybox
+};
 
 struct Color
 {
@@ -201,6 +207,7 @@ struct Triangle
 	Material* materialp;
 
 	Vector3 normal = Vector3(0, 0, 0);
+	ActorType type = ActorType::Common;
 };
 
 struct pTriangle

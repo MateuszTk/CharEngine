@@ -16,6 +16,8 @@ public:
     void Start() override
     {
         int d = 100;
+        //skybox must be loaded first
+        /*objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\skybox\\skybox0", "0", Vector3(0, 0, 0), ActorType::Skybox);
         auto car = objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\car");
         objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "0", Vector3(0, 0, 0));
         objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "1", Vector3(-d, 0, 0));
@@ -27,26 +29,26 @@ public:
 
         objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "0", Vector3(0, 0, d));
         objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "1", Vector3(-d, 0, d));
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "2", Vector3(d, 0, d));        
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "2", Vector3(d, 0, d));*/
 
         //carv = Actor::Find(&car, &actors);
        
 
-       /* Material mat;
+        Material mat;
         Vector3 pos(0,0,0);
         mat.color.UpdateC(0, 255, 255);
         mat.transparency = 1;
 
-        for (int x = 0; x < 2; x++)
+        for (int x = 0; x < 4; x++)
         {
-            for (int y = 0; y < 2; y++)
+            for (int y = 0; y < 4; y++)
             {
                 pos.UpdateV(x * 2 - 1, 0, y * 2 - 1);
                 objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cube", "", pos);
             }
         }
         pos.UpdateV(0, 2, 0);
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cube", "", pos);*/
+        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cube", "", pos);
     }
 
     //float s = 0;
