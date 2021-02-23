@@ -7,10 +7,35 @@
 #include "Helper.h"
 #include "Renderer.h"
 
+#ifdef SDL
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#endif // SDL
+
 using namespace std;
 
 namespace objLoader
 {
+    Mat loadImage(string& filename)
+    {
+#ifdef SDL
+        Mat image;
+        // Standard parameters:
+        //    int *x                 -- outputs image width in pixels
+        //    int *y                 -- outputs image height in pixels
+        //    int *channels_in_file  -- outputs # of image components in image file
+        //    int desired_channels   -- if non-zero, # of image components requested in result
+        image.data = stbi_load(filename.data(), &(image.cols), &(image.rows), &(image.channels_), 0);
+        if(image.data)  image.empty_ = false;
+        return image;
+        
+#endif // SDL
+      
+#ifdef OPENCV
+        return imread(filename, IMREAD_COLOR);
+#endif // OPENCV
+    }
+
     float getNext(int* start, string* line, char breakpoint = ' ')
     {
         while ((*line)[*start] != breakpoint) { (*start)++; }
@@ -81,7 +106,7 @@ namespace objLoader
 
                     if (t)
                     {
-                        Mat texture = imread(texturePath, IMREAD_COLOR);
+                        Mat texture = loadImage(texturePath);
                         if (!texture.data)
                         {
                             std::cout << "Could not open or find the image" << std::endl;

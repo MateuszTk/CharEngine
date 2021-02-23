@@ -4,13 +4,49 @@
 #include "AVX.h"
 
 
-//using namespace helper;
-using namespace cv;
 
 class Screen
 {
 
 public:
+	static void CreateWindow()
+	{
+#ifdef OPENCV
+		namedWindow("Display window", WINDOW_AUTOSIZE); // Create a window for display.
+		image = Mat::zeros(height, width, CV_8UC3);
+#endif // OPENCV
+
+#ifdef SDL
+		SDL_Init(SDL_INIT_EVERYTHING);
+
+		window = SDL_CreateWindow
+		(
+			"CharEngine",
+			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+			width, height,
+			SDL_WINDOW_SHOWN
+		);
+
+		renderer = SDL_CreateRenderer
+		(
+			window,
+			-1,
+			SDL_RENDERER_ACCELERATED
+		);
+
+
+		texture = SDL_CreateTexture
+		(
+			renderer,
+			SDL_PIXELFORMAT_ARGB8888,
+			SDL_TEXTUREACCESS_STREAMING,
+			width, height
+		);
+		image.initialize(height, width, 4);
+#endif // SDL		
+
+	}
+
 	static Point* PosToScreenCenter(Point* pos)
 	{
 		pos->x += halfOfWidth;
@@ -28,55 +64,74 @@ public:
 	static void SetPixelColor(Point* point, ColorA* color)
 	{
 		int i = point->y * width * channels + point->x * channels;
-		image.data[i] = color->B;
-		image.data[i + 1] = color->G;
-		image.data[i + 2] = color->R;
+		image.data[i + R_OFFSET] = color->R;
+		image.data[i + G_OFFSET] = color->G;
+		image.data[i + B_OFFSET] = color->B;
 	}
 
 	static void MixPixelColor(Point* point, ColorA* color)
 	{
 		int i = point->y * width * channels + point->x * channels;
-		image.data[i] = (uchar)(((image.data[i]) - color->B) * color->A + color->B);
-		image.data[i + 1] = (uchar)(((image.data[i + 1]) - color->G) * color->A + color->G);
-		image.data[i + 2] = (uchar)(((image.data[i + 2]) - color->R) * color->A + color->R);
+		image.data[i + R_OFFSET] = (uchar)(((image.data[i + R_OFFSET]) - color->R) * color->A + color->R);
+		image.data[i + G_OFFSET] = (uchar)(((image.data[i + G_OFFSET]) - color->G) * color->A + color->G);
+		image.data[i + B_OFFSET] = (uchar)(((image.data[i + B_OFFSET]) - color->B) * color->A + color->B);
 	}
 
 	static void idSetPixelColor(int id, ColorA* color)
 	{
-		image.data[id] = color->B;
-		image.data[id + 1] = color->G;
-		image.data[id + 2] = color->R;
+		image.data[id + R_OFFSET] = color->R;
+		image.data[id + G_OFFSET] = color->G;
+		image.data[id + B_OFFSET] = color->B;
 	}
 
 	static void idMixPixelColor(int id, ColorA* color)
 	{
-		image.data[id] = (uchar)(((image.data[id]) - color->B) * color->A + color->B);
-		image.data[id + 1] = (uchar)(((image.data[id + 1]) - color->G) * color->A + color->G);
-		image.data[id + 2] = (uchar)(((image.data[id + 2]) - color->R) * color->A + color->R);
+		image.data[id + R_OFFSET] = (uchar)(((image.data[id + R_OFFSET]) - color->R) * color->A + color->R);
+		image.data[id + G_OFFSET] = (uchar)(((image.data[id + G_OFFSET]) - color->G) * color->A + color->G);
+		image.data[id + B_OFFSET] = (uchar)(((image.data[id + B_OFFSET]) - color->B) * color->A + color->B);
 	}
 
 	static void GetPixelColor(Point* point, ColorA* color, int cn, Mat* im)
 	{
 		int i = point->y * im->rows * cn + point->x * cn;
-		color->B = im->data[i];
+		color->R = im->data[i];
 		color->G = im->data[i + 1];
-		color->R = im->data[i + 2];
+		color->B = im->data[i + 2];
 	}
 
 	static void idGetPixelColor(int id, ColorA* color, Mat* im)
 	{
-		color->B = im->data[id];
+		color->R = im->data[id];
 		color->G = im->data[id + 1];
-		color->R = im->data[id + 2];
+		color->B = im->data[id + 2];
 	}
 
 	static void PrintFrame()
 	{
+#ifdef OPENCV
 		imshow("Display window", image);
 		image.setTo(Scalar(140, 80, 10));
-		fill_n(&depth[0][0], width * height, 255);
-	}
+#endif // OPENCV
+#ifdef SDL
+		SDL_UpdateTexture
+		(
+			texture,
+			NULL,
+			image.data,
+			width * 4
+		);
 
+		SDL_RenderCopy(renderer, texture, NULL, NULL);
+		SDL_RenderPresent(renderer);
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+		SDL_RenderClear(renderer);
+		//clear image
+		memset(image.data, 100, image.dataSize);
+#endif // SDL
+		fill_n(&depth[0][0], width * height, 255);
+
+	}
+#ifdef OPENCV
 	void DebugDepth()
 	{
 		Point p;
@@ -96,6 +151,7 @@ public:
 		image.setTo(Scalar(0, 0, 0));
 		fill_n(&depth[0][0], width * height, 255);
 	}
+#endif // OPENCV
 
 	static void DrawTriangle(Triangle& triangle, Tile* tile, Mat* texture)
 	{
