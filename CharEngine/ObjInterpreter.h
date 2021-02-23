@@ -27,8 +27,7 @@ namespace objLoader
         //    int desired_channels   -- if non-zero, # of image components requested in result
         image.data = stbi_load(filename.data(), &(image.cols), &(image.rows), &(image.channels_), 0);
         if(image.data)  image.empty_ = false;
-        return image;
-        
+        return image;   
 #endif // SDL
       
 #ifdef OPENCV
@@ -43,9 +42,18 @@ namespace objLoader
         return atof(line->c_str() + *start);
     }
 
+    std::string directoryOf(const std::string& fname)
+    {
+        size_t pos = fname.find_last_of("\\/");
+        return (std::string::npos == pos) ? "" : fname.substr(0, pos);
+    }
+
     //returns loaded actors names
 	std::vector<std::string> LoadObj(string path, string actorName = "", Vector3 position = Vector3(0, 0, 0), ActorType type = ActorType::Common)
 	{
+
+        std::string local = directoryOf( path );
+
         string line;
         std::vector<std::string> names;
 
@@ -89,7 +97,7 @@ namespace objLoader
                 }
                 else if (line[0] == 'm' && line[5] =='d')
                 {
-                    string texturePath = line.substr(7);
+                    std::string texturePath = line.substr(7);
 
                     //checking if texture was not loaded before
                     bool t = true;
@@ -106,12 +114,30 @@ namespace objLoader
 
                     if (t)
                     {
+
+                        // very hacky image loading :concern:
+                        bool success = true;
+                        
+                        // try as a absolute path
                         Mat texture = loadImage(texturePath);
                         if (!texture.data)
                         {
-                            std::cout << "Could not open or find the image" << std::endl;
+                            // try as a relative path
+                            std::string localTexturePath = local + "/" + texturePath;
+
+                            texture = loadImage(localTexturePath);
+                            if( !texture.data ) 
+                            {
+            
+                                // print some useful info
+                                std::cout << "Could not open or find the image!" << std::endl;
+                                std::cout << " * Tried: " << texturePath << std::endl;
+                                std::cout << " * Tried: " << localTexturePath << std::endl;
+                                success = false;
+                            } 
                         }
-                        else
+
+                        if( success )
                         {
                             Texture tx;
                             tx.textureData = texture;

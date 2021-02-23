@@ -17,19 +17,19 @@ public:
     {
         int d = 100;
         //skybox must be loaded first
-        /*objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\skybox\\skybox0", "0", Vector3(0, 0, 0), ActorType::Skybox);
-        auto car = objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\car");
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "0", Vector3(0, 0, 0));
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "1", Vector3(-d, 0, 0));
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "2", Vector3(d, 0, 0));
+        /*objLoader::LoadObj("./data/skybox0", "0", Vector3(0, 0, 0), ActorType::Skybox);
+        auto car = objLoader::LoadObj("./data/car");
+        objLoader::LoadObj("./data/cybercity88", "0", Vector3(0, 0, 0));
+        objLoader::LoadObj("./data/cybercity88", "1", Vector3(-d, 0, 0));
+        objLoader::LoadObj("./data/cybercity88", "2", Vector3(d, 0, 0));
 
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "0", Vector3(0, 0, -d));
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "1", Vector3(-d, 0, -d));
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "2", Vector3(d, 0, -d));
+        objLoader::LoadObj("./data/cybercity88", "0", Vector3(0, 0, -d));
+        objLoader::LoadObj("./data/cybercity88", "1", Vector3(-d, 0, -d));
+        objLoader::LoadObj("./data/cybercity88", "2", Vector3(d, 0, -d));
 
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "0", Vector3(0, 0, d));
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "1", Vector3(-d, 0, d));
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cybercity88", "2", Vector3(d, 0, d));*/
+        objLoader::LoadObj("./data/cybercity88", "0", Vector3(0, 0, d));
+        objLoader::LoadObj("./data/cybercity88", "1", Vector3(-d, 0, d));
+        objLoader::LoadObj("./data/cybercity88", "2", Vector3(d, 0, d));*/
 
         //carv = Actor::Find(&car, &actors);
        
@@ -44,11 +44,11 @@ public:
             for (int y = 0; y < 4; y++)
             {
                 pos.UpdateV(x * 2 - 1, 0, y * 2 - 1);
-                objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cube", "", pos);
+                objLoader::LoadObj("./data/cube", "", pos);
             }
         }
         pos.UpdateV(0, 2, 0);
-        objLoader::LoadObj("F:\\dokumenty\\obiekty\\lowpoly\\cube", "", pos);
+        objLoader::LoadObj("./data/cube", "", pos);
     }
 
     //float s = 0;
