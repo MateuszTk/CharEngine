@@ -1,6 +1,10 @@
 #pragma once
 
-#ifdef AVX
+// check if AVX is supported
+#if !defined(DISABLE_AVX) && defined(__AVX__) && defined(__AVX2__) 
+
+// referenced in other files
+#define AVX
 
 #include <immintrin.h>
 #include "Helper.h"
@@ -54,4 +58,5 @@ namespace avx
 		return (float*)&_mm256_mul_ps(_mm256_fmadd_ps(_mm256_floor_ps(y), rows, _mm256_floor_ps(x)), cn);
 	}
 }
-#endif // AVX
+
+#endif // if AVX and AVX2
