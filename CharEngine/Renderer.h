@@ -231,34 +231,33 @@ protected:
         sinCamZ = sin(angle.z);
     }
 
-    /*static Vector2* rotate2(float x, float y, float angle)
-    {
-        return &Vector2(x * cos(angle) + y * sin(angle), y * cos(angle) - x * sin(angle));
-    }*/
-
-    static Vector3* rotateWorld(float x, float y, float z)
+    static void rotateWorld(float x, float y, float z, Vector3* vec)
     {
         Vector3 coord(0, 0, 0);
-        Vector2 rotated = Vector2(x * cosCamZ + y * sinCamZ, y * cosCamZ - x * sinCamZ); //rotate2(x, y, cameraAngle.z);
-        coord.x = rotated.x;
-        coord.y = rotated.y;
-        rotated.UpdateV(coord.x * cosCamY + z * sinCamY, z * cosCamY - coord.x * sinCamY);// = rotate2(coord.x, z, cameraAngle.y);
-        coord.x = rotated.x;
-        coord.z = rotated.y;
-        rotated.UpdateV(coord.z * cosCamX + coord.y * sinCamX, coord.y * cosCamX - coord.z * sinCamX);// rotate2(coord.z, coord.y, cameraAngle.x);
-        coord.z = rotated.x;
-        coord.y = rotated.y;
-        return &coord;
+
+        Vector2 rotated = Vector2(x * cosCamZ + y * sinCamZ, y * cosCamZ - x * sinCamZ);
+        vec->x = rotated.x;
+        vec->y = rotated.y;
+
+        rotated.UpdateV(coord.x * cosCamY + z * sinCamY, z * cosCamY - coord.x * sinCamY);
+        vec->x = rotated.x;
+        vec->z = rotated.y;
+
+        rotated.UpdateV(coord.z * cosCamX + coord.y * sinCamX, coord.y * cosCamX - coord.z * sinCamX);
+        vec->z = rotated.x;
+        vec->y = rotated.y;
     }
 
     static Vector3 TdToScreen(float x, float y, float z, float cdist)
     {
+        Vector3 rotated(0, 0, 0);
+        rotateWorld(x, y, z, &rotated);
 
-        Vector3 rotated = *rotateWorld(x, y, z);
         float multiplier = -(0.5f * width / ((rotated.z + cdist) * fov));//-fabsf
         rotated.x *= multiplier;
         rotated.y *= multiplier;
-        return rotated;
+
+        return std::move(rotated);
     }
 
     static void TranslateMesh(std::vector<Vertex>* vertices, Vector3* position, ActorType* atype)

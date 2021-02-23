@@ -3,8 +3,6 @@
 #include "Helper.h"
 #include "AVX.h"
 
-
-
 class Screen
 {
 
