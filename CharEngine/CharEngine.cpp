@@ -3,10 +3,6 @@
 #include "Renderer.h"
 #include "Main.h"
 
-
-//using namespace helper;
-using namespace cv;
-
 typedef std::chrono::high_resolution_clock Clock;
 
 Vector3 cameraAngle = Vector3(0, 0, 0);
@@ -14,6 +10,12 @@ Vector3 cameraPosition = Vector3(0, 0, 0);
 float depth[width][height];
 Mat image;
 float deltaTime = 0;
+#ifdef SDL
+SDL_Renderer* renderer = NULL;
+SDL_Texture* texture = NULL;
+SDL_Window* window = NULL;
+#endif // SDL
+
 
 #ifdef MULTITHREADING
 // Create threads
@@ -22,7 +24,10 @@ ThreadPool pool(threads);
 #endif
 
 int x = 0, y = 180;
-
+#ifdef SDL
+SDL_Event e;
+#endif
+#ifdef OPENCV
 void mouse_callback(int event, int xm, int ym, int flag, void* param)
 {
     if (event == EVENT_MOUSEMOVE)
@@ -38,17 +43,31 @@ void mouse_callback(int event, int xm, int ym, int flag, void* param)
             dist += 0.8f;
     }
 }
+#endif // OPENCV
 
-int main()
+#ifdef SDL
+void updateMousePosition()
+{
+    while (SDL_PollEvent(&e) != 0)
+    {
+        if (e.type == SDL_MOUSEMOTION)
+        {
+            SDL_GetGlobalMouseState(&x, &y);
+        }
+    }
+}
+#endif
+
+int main(int argc, char* argv[])
 {
 
     //std::cout << __cplusplus << std::endl;
-
-    namedWindow("Display window", WINDOW_AUTOSIZE); // Create a window for display.
-    image = Mat::zeros(height, width, CV_8UC3);
+    Screen::CreateWindow();
 
     auto t1 = Clock::now();
+#ifdef OPENCV
     setMouseCallback("Display window", mouse_callback);
+#endif // OPENCV 
 
     Texture emptyTexture;
     textures.push_back(emptyTexture);
@@ -64,12 +83,16 @@ int main()
 
     while (true)
     {
-
+#ifdef SDL
+        updateMousePosition();
+#endif
         cameraAngle.y =  x / 50.0f;
         cameraAngle.x =  y / 50.0f;
+        char key = ' ';
 
-        char key = (char)waitKey(1);
-
+#ifdef OPENCV
+        key = (char)waitKey(1);
+#endif // OPENCV 
         switch (key)
         {
         case ('q'):
@@ -99,9 +122,9 @@ int main()
         t1 = Clock::now();
         avgDelta += deltaTime;
 
-        if (fpsDelay >= 10)
+        if (fpsDelay >= 20)
         {           
-            fps = to_string(10000.0f / avgDelta) + " FPS x" + to_string(x) + " y " + to_string(y);     
+            fps = to_string(20000.0f / avgDelta) + " FPS x" + to_string(x) + " y " + to_string(y);     
             avgDelta = 0;           
             fpsDelay = 0;
         }
@@ -109,7 +132,13 @@ int main()
             fpsDelay++;
         
         Renderer::render();
+#ifdef OPENCV
         cv::putText(image, fps, Point(0, 12), FONT_HERSHEY_SIMPLEX, 0.5f, Scalar(255, 255, 255), 1);
+#endif // OPENCV  
+#ifdef SDL
+        cout << "FPS: " << fps << '\n';
+#endif // SDL
+
         Screen::PrintFrame();
         //Screen::DebugDepth();
         //Screen::DebugNormals();

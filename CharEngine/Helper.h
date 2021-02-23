@@ -1,21 +1,39 @@
 #pragma once
 
+#define AVX
+#define MULTITHREADING
+#define SDL
+//#define OPENCV
+
 #include <iostream>
 #include <chrono>
-#include "opencv2/core.hpp"
-#include "opencv2/imgproc.hpp"
-#include "opencv2/imgcodecs.hpp"
-#include "opencv2/highgui.hpp"
+
+#ifdef OPENCV
+	#include "opencv2/core.hpp"
+	#include "opencv2/imgproc.hpp"
+	#include "opencv2/imgcodecs.hpp"
+	#include "opencv2/highgui.hpp"
+#endif // OPENCV
+
+
+#ifdef SDL
+	#include <SDL.h>
+#endif // SDL
+
 #include <cmath>
 #include <vector>
 #include "ThreadPool.h"
 
-//#define AVX
-#define MULTITHREADING
-//#define TRANSPARENCY
 
+#ifdef OPENCV
 using namespace cv;
+#endif
 using namespace std;
+
+#ifdef SDL
+typedef unsigned char uchar;
+#endif // SDL
+
 
 const int width = 1280;
 const int height = 720;
@@ -25,7 +43,24 @@ float dist = 16;
 const float fov = 1.0f;//(float)tan(80 / 2);
 const int farMax = 255;
 const int clipNear = 0;
+#ifdef SDL
+const int channels = 4;
+#endif // SDL
+#ifdef OPENCV
 const int channels = 3;
+#endif
+
+#ifdef OPENCV
+#define R_OFFSET 0
+#define G_OFFSET 1
+#define B_OFFSET 2
+#endif // OPENCV
+
+#ifdef SDL
+#define R_OFFSET 2
+#define G_OFFSET 1
+#define B_OFFSET 0
+#endif // SDL
 
 const int numberOfTilesX = 11;
 const int numberOfTilesY = 1;
@@ -185,6 +220,55 @@ struct Vector3
 	}
 };
 
+#ifdef SDL
+struct Point
+{
+	int x;
+	int y;
+	Point(int _x = 0, int _y = 0)
+	{
+		x = _x;
+		y = _y;
+	}
+
+	void UpdateV(int _x, int _y)
+	{
+		x = _x;
+		y = _y;
+	}
+};
+
+struct Mat
+{
+	int rows = 0;
+	int cols = 0;
+	int channels_ = 0;
+	bool empty_ = true;
+	uchar* data;
+	int dataSize = 0;
+
+	void initialize(int _rows = 0, int _cols = 0, int _channels = 0)
+	{
+		dataSize = _rows * _cols * _channels;
+		data = new uchar[dataSize];
+		rows = _rows;
+		cols = _cols;
+		channels_ = _channels;
+		if (dataSize > 0) empty_ = true;
+	}
+
+	int channels()
+	{
+		return channels_;
+	}
+
+	bool empty()
+	{
+		return empty_;
+	}
+};
+#endif // SDL
+
 struct Material
 {
 	std::string name;
@@ -212,9 +296,9 @@ struct Triangle
 
 struct pTriangle
 {
-	int v1;
-	int v2;
-	int v3;
+	int v1 = 0;
+	int v2 = 0;
+	int v3 = 0;
 	Vector2 uv1 = Vector2(0, 0);
 	Vector2 uv2 = Vector2(0, 0);
 	Vector2 uv3 = Vector2(0, 0);
@@ -261,4 +345,10 @@ extern Vector3 cameraAngle;
 extern Vector3 cameraPosition;
 extern float deltaTime;
 extern ThreadPool pool;
+
+#ifdef SDL
+extern SDL_Renderer* renderer;
+extern SDL_Texture* texture;
+extern SDL_Window* window;
+#endif // SDL
 

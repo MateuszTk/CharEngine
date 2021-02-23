@@ -5,8 +5,6 @@
 #include <vector>
 #include "Actor.h"
 
-//using namespace helper;
-using namespace cv;
 
 
 vector<Actor> actors;
