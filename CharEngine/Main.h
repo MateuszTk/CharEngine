@@ -44,11 +44,11 @@ public:
             for (int y = 0; y < 4; y++)
             {
                 pos.UpdateV(x * 2 - 1, 0, y * 2 - 1);
-                objLoader::LoadObj("./data/cube", "", pos);
+                objLoader::LoadObj("../data/cube", "", pos);
             }
         }
         pos.UpdateV(0, 2, 0);
-        objLoader::LoadObj("./data/cube", "", pos);
+        objLoader::LoadObj("../data/cube", "", pos);
     }
 
     //float s = 0;
