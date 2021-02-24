@@ -5,7 +5,15 @@
 #include <vector>
 #include "Actor.h"
 
-
+#ifdef MULTITHREADING
+#   define DO_ACTOR_JOB(job) pool.doJob(std::bind(submitActor, job));
+#   define DO_TILE_JOB(job) pool.doJob(std::bind(renderTile, job));
+#   define WAIT_FOR_JOBS() while (!pool.isFinished()) {}
+#else
+#   define DO_ACTOR_JOB(job) submitActor(job);
+#   define DO_TILE_JOB(job) renderTile(job);
+#   define WAIT_FOR_JOBS()
+#endif
 
 vector<Actor> actors;
 vector<Texture> textures;
@@ -33,50 +41,49 @@ public:
 #if defined(TRANSPARENCY)
             if (act->getMaterial()->transparency == 0.0f)
             {
-                pool.doJob(std::bind(submitActor, &*act));
+                DO_ACTOR_JOB( &*act );
             }
             else
             {
                 passActors.push_back(&(*act));
             }
 #else
-            pool.doJob(std::bind(submitActor, &*act));
+            DO_ACTOR_JOB( &*act );
 #endif
 
             
         }
 
-        while (!pool.isFinished()) { /*wait for all threads to finish*/ }
-
+        WAIT_FOR_JOBS();
 
         //int q = 0;
         auto end0 = std::end(tiles);
         for (auto tile = std::begin(tiles); tile != end0; ++tile)
         {
             //if(q%2 == 0)
-            pool.doJob(std::bind(renderTile, &*tile));
+            DO_TILE_JOB( &*tile );
            // q++;
         }
 
-        while (!pool.isFinished()) { /*wait for all threads to finish*/ }
+        WAIT_FOR_JOBS();
 
 #if defined(TRANSPARENCY)
         //transparent pass
         auto end2 = std::end(passActors);
         for (auto act = std::begin(passActors); act != end2; ++act)
         {
-            pool.doJob(std::bind(submitActor, *act));
+            DO_ACTOR_JOB( &*act );
         }
 
-        while (!pool.isFinished()) { /*wait for all threads to finish*/ }
+        WAIT_FOR_JOBS();
 
         end0 = std::end(tiles);
         for (auto tile = std::begin(tiles); tile != end0; ++tile)
         {
-            pool.doJob(std::bind(renderTile, &*tile));
+            DO_TILE_JOB( &*tile );
         }
 
-        while (!pool.isFinished()) { /*wait for all threads to finish*/ }
+        WAIT_FOR_JOBS();
 #endif
 
     }

@@ -5,6 +5,7 @@
 
 class Actor
 {
+
 private:
     std::vector<pTriangle> triangles;
     std::vector<Vertex> vertices;
@@ -69,88 +70,4 @@ public:
             *((**act).getPosition()) = *newPosition;
         }
     }
-
-    /*static Actor createCube(Vector3 pos, Material* mat)
-    {
-        Actor actor;
-        *(actor.getPosition()) = pos;
-        pTriangle tri;
-        actor.material = *mat;
-
-        Vertex vert;
-        vert.raw.UpdateV(-1, -1, -1);
-        actor.getVertices()->push_back(vert);
-        vert.raw.UpdateV(-1, -1, -1);
-        actor.getVertices()->push_back(vert);
-        vert.raw.UpdateV(-1, -1, -1);
-        actor.getVertices()->push_back(vert);
-        vert.raw.UpdateV(-1, -1, -1);
-        actor.getVertices()->push_back(vert);
-
-        tri.v1.UpdateV(-1, -1, 1);
-        tri.v2.UpdateV(-1, 1, 1);
-        tri.v3.UpdateV(1, -1, 1);
-        actor.getGeometry()->push_back(tri);
-
-        tri.v1.UpdateV(1, 1, 1);
-        tri.v2.UpdateV(1, -1, 1);
-        tri.v3.UpdateV(-1, 1, 1);
-        actor.getGeometry()->push_back(tri);
-
-        tri.v1.UpdateV(-1, -1, -1);
-        tri.v2.UpdateV(1, -1, -1);
-        tri.v3.UpdateV(-1, 1, -1);
-        actor.getGeometry()->push_back(tri);
-
-        tri.v1.UpdateV(1, 1, -1);
-        tri.v2.UpdateV(-1, 1, -1);
-        tri.v3.UpdateV(1, -1, -1);
-        actor.getGeometry()->push_back(tri);
-
-        //-------------------------------------------------//
-
-        tri.v1.UpdateV(1, -1, -1);
-        tri.v2.UpdateV(1, -1, 1);
-        tri.v3.UpdateV(1, 1, -1);
-        actor.getGeometry()->push_back(tri);
-
-        tri.v1.UpdateV(1, 1, 1);
-        tri.v2.UpdateV(1, 1, -1);
-        tri.v3.UpdateV(1, -1, 1);
-        actor.getGeometry()->push_back(tri);
-
-        tri.v1.UpdateV(-1, -1, -1);
-        tri.v2.UpdateV(-1, 1, -1);
-        tri.v3.UpdateV(-1, -1, 1);
-        actor.getGeometry()->push_back(tri);
-
-        tri.v1.UpdateV(-1, 1, 1);
-        tri.v2.UpdateV(-1, -1, 1);
-        tri.v3.UpdateV(-1, 1, -1);
-        actor.getGeometry()->push_back(tri);
-
-        //-------------------------------------------------//
-
-        tri.v1.UpdateV(-1, 1, -1);
-        tri.v2.UpdateV(1, 1, -1);
-        tri.v3.UpdateV(-1, 1, 1);
-        actor.getGeometry()->push_back(tri);
-
-        tri.v1.UpdateV(1, 1, 1);
-        tri.v2.UpdateV(-1, 1, 1);
-        tri.v3.UpdateV(1, 1, -1);
-        actor.getGeometry()->push_back(tri);
-
-        tri.v1.UpdateV(-1, -1, -1);
-        tri.v2.UpdateV(-1, -1, 1);
-        tri.v3.UpdateV(1, -1, -1);
-        actor.getGeometry()->push_back(tri);
-
-        tri.v1.UpdateV(1, -1, 1);
-        tri.v2.UpdateV(1, -1, -1);
-        tri.v3.UpdateV(-1, -1, 1);
-        actor.getGeometry()->push_back(tri);
-
-        return actor;
-    }*/
 };
