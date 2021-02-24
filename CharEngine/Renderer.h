@@ -5,7 +5,15 @@
 #include <vector>
 #include "Actor.h"
 
-
+#ifdef MULTITHREADING
+#   define DO_ACTOR_JOB(job) pool.doJob(std::bind(submitActor, job));
+#   define DO_TILE_JOB(job) pool.doJob(std::bind(renderTile, job));
+#   define WAIT_FOR_JOBS() while (!pool.isFinished()) {}
+#else
+#   define DO_ACTOR_JOB(job) submitActor(job);
+#   define DO_TILE_JOB(job) renderTile(job);
+#   define WAIT_FOR_JOBS()
+#endif
 
 vector<Actor> actors;
 vector<Texture> textures;
@@ -33,50 +41,49 @@ public:
 #if defined(TRANSPARENCY)
             if (act->getMaterial()->transparency == 0.0f)
             {
-                pool.doJob(std::bind(submitActor, &*act));
+                DO_ACTOR_JOB( &*act );
             }
             else
             {
                 passActors.push_back(&(*act));
             }
 #else
-            pool.doJob(std::bind(submitActor, &*act));
+            DO_ACTOR_JOB( &*act );
 #endif
 
             
         }
 
-        while (!pool.isFinished()) { /*wait for all threads to finish*/ }
-
+        WAIT_FOR_JOBS();
 
         //int q = 0;
         auto end0 = std::end(tiles);
         for (auto tile = std::begin(tiles); tile != end0; ++tile)
         {
             //if(q%2 == 0)
-            pool.doJob(std::bind(renderTile, &*tile));
+            DO_TILE_JOB( &*tile );
            // q++;
         }
 
-        while (!pool.isFinished()) { /*wait for all threads to finish*/ }
+        WAIT_FOR_JOBS();
 
 #if defined(TRANSPARENCY)
         //transparent pass
         auto end2 = std::end(passActors);
         for (auto act = std::begin(passActors); act != end2; ++act)
         {
-            pool.doJob(std::bind(submitActor, *act));
+            DO_ACTOR_JOB( &*act );
         }
 
-        while (!pool.isFinished()) { /*wait for all threads to finish*/ }
+        WAIT_FOR_JOBS();
 
         end0 = std::end(tiles);
         for (auto tile = std::begin(tiles); tile != end0; ++tile)
         {
-            pool.doJob(std::bind(renderTile, &*tile));
+            DO_TILE_JOB( &*tile );
         }
 
-        while (!pool.isFinished()) { /*wait for all threads to finish*/ }
+        WAIT_FOR_JOBS();
 #endif
 
     }
@@ -231,34 +238,31 @@ protected:
         sinCamZ = sin(angle.z);
     }
 
-    /*static Vector2* rotate2(float x, float y, float angle)
+    static void rotateWorld(float x, float y, float z, Vector3* vec)
     {
-        return &Vector2(x * cos(angle) + y * sin(angle), y * cos(angle) - x * sin(angle));
-    }*/
+        Vector2 rotated = Vector2(x * cosCamZ + y * sinCamZ, y * cosCamZ - x * sinCamZ);
+        vec->x = rotated.x;
+        vec->y = rotated.y;
 
-    static Vector3* rotateWorld(float x, float y, float z)
-    {
-        Vector3 coord(0, 0, 0);
-        Vector2 rotated = Vector2(x * cosCamZ + y * sinCamZ, y * cosCamZ - x * sinCamZ); //rotate2(x, y, cameraAngle.z);
-        coord.x = rotated.x;
-        coord.y = rotated.y;
-        rotated.UpdateV(coord.x * cosCamY + z * sinCamY, z * cosCamY - coord.x * sinCamY);// = rotate2(coord.x, z, cameraAngle.y);
-        coord.x = rotated.x;
-        coord.z = rotated.y;
-        rotated.UpdateV(coord.z * cosCamX + coord.y * sinCamX, coord.y * cosCamX - coord.z * sinCamX);// rotate2(coord.z, coord.y, cameraAngle.x);
-        coord.z = rotated.x;
-        coord.y = rotated.y;
-        return &coord;
+        rotated.UpdateV(vec->x * cosCamY + z * sinCamY, z * cosCamY - vec->x * sinCamY);
+        vec->x = rotated.x;
+        vec->z = rotated.y;
+
+        rotated.UpdateV(vec->z * cosCamX + vec->y * sinCamX, vec->y * cosCamX - vec->z * sinCamX);
+        vec->z = rotated.x;
+        vec->y = rotated.y;
     }
 
     static Vector3 TdToScreen(float x, float y, float z, float cdist)
     {
+        Vector3 rotated(0, 0, 0);
+        rotateWorld(x, y, z, &rotated);
 
-        Vector3 rotated = *rotateWorld(x, y, z);
         float multiplier = -(0.5f * width / ((rotated.z + cdist) * fov));//-fabsf
         rotated.x *= multiplier;
         rotated.y *= multiplier;
-        return rotated;
+
+        return std::move(rotated);
     }
 
     static void TranslateMesh(std::vector<Vertex>* vertices, Vector3* position, ActorType* atype)

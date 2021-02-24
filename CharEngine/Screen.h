@@ -3,8 +3,6 @@
 #include "Helper.h"
 #include "AVX.h"
 
-
-
 class Screen
 {
 
@@ -162,11 +160,6 @@ public:
 		fColor c2(triangle.materialp->color);
 
 
-#if defined SMART_AVX
-		//true - use AVX
-		const bool avxMode = bbmax.y - bbmin.y > 8;
-#endif
-
 		Point bbmin(max(triangle.bbmin.x, tile->pmin.x), max(triangle.bbmin.y, tile->pmin.y));
 		Point bbmax(min(triangle.bbmax.x, tile->pmax.x), min(triangle.bbmax.y, tile->pmax.y));
 
@@ -183,15 +176,15 @@ public:
 		c0 *= specularity;
 		c1 *= specularity;
 		c2 *= specularity;
-#if !defined AVX || defined SMART_AVX
 
+#ifndef AVX
 		void (*pixel_placer)(Point*, ColorA*) = (triangle.materialp->transparency == 0.0f) ? &SetPixelColor : &MixPixelColor;
 		Point pt;
 		Point p1;
 		float u, v;
 		float e1, e2, e3;
 		float depthl;
-#endif // !AVX
+#endif // not AVX
 
 		// divide vertex-attribute by the vertex z-coordinate
 		c0.R /= triangle.v0.z, c0.G /= triangle.v0.z, c0.B /= triangle.v0.z;
@@ -209,9 +202,7 @@ public:
 		int cn = texture->channels();
 		bool mode = !texture->empty();
 
-
 #ifdef AVX
-
 
 		//__m256* AVXset2 = new __m256[20];
 		//__m256* subResult = new __m256[20];
@@ -222,14 +213,12 @@ public:
 		const __m256 subResult_9 = _mm256_set1_ps(triangle.v0.y - triangle.v2.y);
 		const __m256 subResult_11 = _mm256_set1_ps(triangle.v0.x - triangle.v2.x);
 
-		//----------
 		const __m256 AVXset2_0 = _mm256_set1_ps(triangle.v0.x);
 		const __m256 AVXset2_2 = _mm256_set1_ps(triangle.v0.y);
 		const __m256 AVXset2_4 = _mm256_set1_ps(triangle.v1.x);
 		const __m256 AVXset2_6 = _mm256_set1_ps(triangle.v1.y);
 		const __m256 AVXset2_8 = _mm256_set1_ps(triangle.v2.x);
 		const __m256 AVXset2_10 = _mm256_set1_ps(triangle.v2.y);
-
 
 		__m256* ptx = 0;
 		__m256* pty = 0;
@@ -241,7 +230,6 @@ public:
 		__m256 v2z = _mm256_set1_ps(triangle.v2.z);
 
 		const __m256 areaSet = _mm256_set1_ps(area);
-
 
 		const __m256 c0R = _mm256_set1_ps(c0.R);
 		const __m256 c0G = _mm256_set1_ps(c0.G);
@@ -270,74 +258,64 @@ public:
 
 		void (*AVXpixel_placer)(int, ColorA*) = (triangle.materialp->transparency == 0.0f) ? &idSetPixelColor : &idMixPixelColor;
 
-#endif // AVX
+#else
 
-#if defined AVX && defined SMART_AVX
-		if (!avxMode)
-#endif
-#if !defined AVX || defined SMART_AVX
+		for (int x = bbmin.x; x <= bbmax.x; x++)
 		{
-			for (int x = bbmin.x; x <= bbmax.x; x++)
+			end = false;
+			for (int y = bbmin.y; y <= bbmax.y; y++)
 			{
-				end = false;
-				for (int y = bbmin.y; y <= bbmax.y; y++)
+				inside = true;
+				//checking if the pixel is inside the triangle (cross product)
+				inside = (e3 = (x - triangle.v0.x) * (triangle.v1.y - triangle.v0.y) - (y - triangle.v0.y) * (triangle.v1.x - triangle.v0.x)) >= 0;
+				if (!inside)
+					continue;
+
+				inside = (e1 = (x - triangle.v1.x) * (triangle.v2.y - triangle.v1.y) - (y - triangle.v1.y) * (triangle.v2.x - triangle.v1.x)) >= 0;
+				if (!inside)
+					continue;
+
+				inside = (e2 = (x - triangle.v2.x) * (triangle.v0.y - triangle.v2.y) - (y - triangle.v2.y) * (triangle.v0.x - triangle.v2.x)) >= 0;
+
+				if (inside)
 				{
-					inside = true;
-					//checking if the pixel is inside the triangle (cross product)
-					inside = (e3 = (x - triangle.v0.x) * (triangle.v1.y - triangle.v0.y) - (y - triangle.v0.y) * (triangle.v1.x - triangle.v0.x)) >= 0;
-					if (!inside)
-						continue;
-
-					inside = (e1 = (x - triangle.v1.x) * (triangle.v2.y - triangle.v1.y) - (y - triangle.v1.y) * (triangle.v2.x - triangle.v1.x)) >= 0;
-					if (!inside)
-						continue;
-
-					inside = (e2 = (x - triangle.v2.x) * (triangle.v0.y - triangle.v2.y) - (y - triangle.v2.y) * (triangle.v0.x - triangle.v2.x)) >= 0;
-
-					if (inside)
+					e1 /= area;
+					e2 /= area;
+					e3 /= area;
+					depthl = 1 / (e1 * triangle.v0.z + e2 * triangle.v1.z + e3 * triangle.v2.z);
+					if (depth[x][y] > depthl)
 					{
-						e1 /= area;
-						e2 /= area;
-						e3 /= area;
-						depthl = 1 / (e1 * triangle.v0.z + e2 * triangle.v1.z + e3 * triangle.v2.z);
-						if (depth[x][y] > depthl)
+						p1.x = x;
+						p1.y = y;
+
+						if (mode)
 						{
-							p1.x = x;
-							p1.y = y;
-
-							if (mode)
-							{
-								u = (e1 * triangle.uv0.x + e2 * triangle.uv1.x + e3 * triangle.uv2.x) * depthl;
-								v = (e1 * triangle.uv0.y + e2 * triangle.uv1.y + e3 * triangle.uv2.y) * depthl;
-								pt.x = u * texture->rows;
-								pt.y = v * (texture->cols - 1);
-								GetPixelColor(&pt, &cx, cn, texture);
-							}
-							else
-							{
-								cx.R = (uchar)((e1 * c0.R + e2 * c1.R + e3 * c2.R) * depthl);
-								cx.G = (uchar)((e1 * c0.G + e2 * c1.G + e3 * c2.G) * depthl);
-								cx.B = (uchar)((e1 * c0.B + e2 * c1.B + e3 * c2.B) * depthl);
-							}
-
-
-							(*pixel_placer)(&p1, &cx);
-							depth[x][y] = depthl;
+							u = (e1 * triangle.uv0.x + e2 * triangle.uv1.x + e3 * triangle.uv2.x) * depthl;
+							v = (e1 * triangle.uv0.y + e2 * triangle.uv1.y + e3 * triangle.uv2.y) * depthl;
+							pt.x = u * texture->rows;
+							pt.y = v * (texture->cols - 1);
+							GetPixelColor(&pt, &cx, cn, texture);
 						}
-						end = true;
+						else
+						{
+							cx.R = (uchar)((e1 * c0.R + e2 * c1.R + e3 * c2.R) * depthl);
+							cx.G = (uchar)((e1 * c0.G + e2 * c1.G + e3 * c2.G) * depthl);
+							cx.B = (uchar)((e1 * c0.B + e2 * c1.B + e3 * c2.B) * depthl);
+						}
+
+						(*pixel_placer)(&p1, &cx);
+						depth[x][y] = depthl;
 					}
-					else if (end)
-					{
-						break;
-					}
+					end = true;
+				}
+				else if (end)
+				{
+					break;
 				}
 			}
 		}
-#endif // nAVX
+#endif // AVX
 
-#if defined AVX && defined SMART_AVX
-		else
-#endif
 #ifdef AVX
 		{
 			//-------------------------------------------------

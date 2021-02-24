@@ -1,9 +1,10 @@
 #pragma once
 
-#define AVX
 #define MULTITHREADING
 #define SDL
 //#define OPENCV
+//#define DISABLE_AVX
+
 
 #include <iostream>
 #include <chrono>
