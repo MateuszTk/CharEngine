@@ -233,17 +233,15 @@ protected:
 
     static void rotateWorld(float x, float y, float z, Vector3* vec)
     {
-        Vector3 coord(0, 0, 0);
-
         Vector2 rotated = Vector2(x * cosCamZ + y * sinCamZ, y * cosCamZ - x * sinCamZ);
         vec->x = rotated.x;
         vec->y = rotated.y;
 
-        rotated.UpdateV(coord.x * cosCamY + z * sinCamY, z * cosCamY - coord.x * sinCamY);
+        rotated.UpdateV(vec->x * cosCamY + z * sinCamY, z * cosCamY - vec->x * sinCamY);
         vec->x = rotated.x;
         vec->z = rotated.y;
 
-        rotated.UpdateV(coord.z * cosCamX + coord.y * sinCamX, coord.y * cosCamX - coord.z * sinCamX);
+        rotated.UpdateV(vec->z * cosCamX + vec->y * sinCamX, vec->y * cosCamX - vec->z * sinCamX);
         vec->z = rotated.x;
         vec->y = rotated.y;
     }
