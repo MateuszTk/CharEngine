@@ -126,9 +126,19 @@ public:
 		//clear image
 		memset(image.data, 100, image.dataSize);
 #endif // SDL
-		fill_n(&depth[0][0], width * height, 255);
+		//fill_n(&depth[0], width * height, 255);
 
 	}
+
+	static void ClearTile(Tile* tile) 
+	{
+		for (int y = tile->pmin.y; y < tile->pmax.y; y++) {
+			for (int x = tile->pmin.x; x < tile->pmax.x; x++) {
+				depth[y * width + x] = 255;
+			}
+		}
+	}
+
 #ifdef OPENCV
 	void DebugDepth()
 	{
@@ -251,7 +261,6 @@ public:
 		float* cxG = 0;
 		float* cxB = 0;
 		float* texturePixelId = 0;
-		float* pixelId;
 		__m256 cn_256 = _mm256_set1_ps(cn);
 
 		__m256 avxset0, avxset1;
@@ -322,12 +331,14 @@ public:
 			for (int x = bbmin.x; x <= bbmax.x; x++)
 			{
 				avxset0 = _mm256_set1_ps(x);
+				const __m256i avxset0i = _mm256_set1_epi32(x);
 
 				end = false;
 				for (int y = bbmin.y; y <= bbmax.y; )
 				{
 
 					avxset1 = _mm256_add_ps(_mm256_set1_ps(y), avx::a2);
+					const __m256i avxset1i = _mm256_add_epi32(_mm256_set1_epi32(y), avx::a2i);
 
 					const __m256 e3_256 = _mm256_div_ps(_mm256_fmsub_ps(_mm256_sub_ps(avxset0, AVXset2_0), subResult_1, _mm256_mul_ps(_mm256_sub_ps(avxset1, AVXset2_2), subResult_3)), areaSet);
 					const __m256 e1_256 = _mm256_div_ps(_mm256_fmsub_ps(_mm256_sub_ps(avxset0, AVXset2_4), subResult_5, _mm256_mul_ps(_mm256_sub_ps(avxset1, AVXset2_6), subResult_7)), areaSet);
@@ -338,7 +349,9 @@ public:
 					{
 
 						const __m256 depthl_256 = _mm256_div_ps(avx::oneSet, avx::AVXinterpolate(e1_256, v0z, e2_256, v1z, e3_256, v2z));
-						pixelId = avx::AVXpoint2PixelId(avxset0, avxset1, avx::displayChannels, avx::displayRows);
+						const __m256i pixelIdm = avx::AVXpoint2PixelId(avxset0i, avxset1i, avx::displayRows);
+						const int* const pixelId = (int*)&pixelIdm;
+						const int* const pixelIdCh = (int*)&_mm256_mullo_epi32(pixelIdm, avx::displayChannels);
 
 						if (mode)
 						{
@@ -360,7 +373,7 @@ public:
 							{
 								if (useDepth)
 								{
-									if (depth[x][y] > ((float*)&depthl_256)[i])
+									if (depth[pixelId[i]] > ((float*)&depthl_256)[i])
 									{
 										if (mode)
 										{
@@ -373,8 +386,8 @@ public:
 											cx.B = (uchar)cxB[i];
 										}
 
-										(*AVXpixel_placer)(pixelId[i], &cx);
-										depth[x][y] = ((float*)&depthl_256)[i];
+										(*AVXpixel_placer)(pixelIdCh[i], &cx);
+										depth[pixelId[i]] = ((float*)&depthl_256)[i];
 									}
 								}
 								else

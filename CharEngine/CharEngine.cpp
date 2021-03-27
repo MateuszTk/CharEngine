@@ -7,7 +7,7 @@ typedef std::chrono::high_resolution_clock Clock;
 
 Vector3 cameraAngle = Vector3(0, 0, 0);
 Vector3 cameraPosition = Vector3(0, 0, 0);
-float depth[width][height];
+float depth[width * height];
 Mat image;
 float deltaTime = 0;
 #ifdef SDL

@@ -134,6 +134,7 @@ protected:
         {
             tdTriangle(*(tile->assignedTriangles[i]), tile);
         }
+        Screen::ClearTile(tile);
     }
 
     static void clearTiles()

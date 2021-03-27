@@ -18,10 +18,11 @@ namespace avx
 
 
 	const __m256 a2 = _mm256_setr_ps(0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f);
+	const __m256i a2i = _mm256_setr_epi32(0, 1, 2, 3, 4, 5, 6, 7);
 
 	const __m256 oneSet = _mm256_set1_ps(1);
-	const __m256 displayChannels = _mm256_set1_ps(channels);
-	const __m256 displayRows = _mm256_set1_ps(width);
+	const __m256i displayChannels = _mm256_set1_epi32(channels);
+	const __m256i displayRows = _mm256_set1_epi32(width);
 
 
 	inline void updateSet(float* set, float value)
@@ -53,9 +54,13 @@ namespace avx
 		return _mm256_fmadd_ps(e1, v1, _mm256_fmadd_ps(e2, v2, _mm256_mul_ps(e3, v3)));
 	}
 
-	inline float* AVXpoint2PixelId(__m256 x, __m256 y, __m256 cn, __m256 rows)
+	inline __m256i AVXpoint2PixelId(__m256i x, __m256i y, __m256i rows)
 	{
-		return (float*)&_mm256_mul_ps(_mm256_fmadd_ps(_mm256_floor_ps(y), rows, _mm256_floor_ps(x)), cn);
+		return _mm256_add_epi32(_mm256_mullo_epi32(y, rows), x);
+	}
+
+	inline float* AVXpoint2PixelId(__m256 x, __m256 y, __m256 ch, __m256 rows) {
+		return (float*)&_mm256_mul_ps(_mm256_fmadd_ps(_mm256_floor_ps(y), rows, _mm256_floor_ps(x)), ch);
 	}
 }
 

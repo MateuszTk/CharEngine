@@ -17,24 +17,24 @@ public:
     {
         int d = 100;
         //skybox must be loaded first
-        /*objLoader::LoadObj("./data/skybox0", "0", Vector3(0, 0, 0), ActorType::Skybox);
-        auto car = objLoader::LoadObj("./data/car");
-        objLoader::LoadObj("./data/cybercity88", "0", Vector3(0, 0, 0));
-        objLoader::LoadObj("./data/cybercity88", "1", Vector3(-d, 0, 0));
-        objLoader::LoadObj("./data/cybercity88", "2", Vector3(d, 0, 0));
+        //objLoader::LoadObj("../data/skybox0", "0", Vector3(0, 0, 0), ActorType::Skybox);
+        auto car = objLoader::LoadObj("../data/car");
+        objLoader::LoadObj("../data/cybercity88", "0", Vector3(0, 0, 0));
+        objLoader::LoadObj("../data/cybercity88", "1", Vector3(-d, 0, 0));
+        objLoader::LoadObj("../data/cybercity88", "2", Vector3(d, 0, 0));
 
-        objLoader::LoadObj("./data/cybercity88", "0", Vector3(0, 0, -d));
-        objLoader::LoadObj("./data/cybercity88", "1", Vector3(-d, 0, -d));
-        objLoader::LoadObj("./data/cybercity88", "2", Vector3(d, 0, -d));
+        objLoader::LoadObj("../data/cybercity88", "0", Vector3(0, 0, -d));
+        objLoader::LoadObj("../data/cybercity88", "1", Vector3(-d, 0, -d));
+        objLoader::LoadObj("../data/cybercity88", "2", Vector3(d, 0, -d));
 
-        objLoader::LoadObj("./data/cybercity88", "0", Vector3(0, 0, d));
-        objLoader::LoadObj("./data/cybercity88", "1", Vector3(-d, 0, d));
-        objLoader::LoadObj("./data/cybercity88", "2", Vector3(d, 0, d));*/
+        objLoader::LoadObj("../data/cybercity88", "0", Vector3(0, 0, d));
+        objLoader::LoadObj("../data/cybercity88", "1", Vector3(-d, 0, d));
+        objLoader::LoadObj("../data/cybercity88", "2", Vector3(d, 0, d));
 
         //carv = Actor::Find(&car, &actors);
        
 
-        Material mat;
+        /*Material mat;
         Vector3 pos(0,0,0);
         mat.color.UpdateC(0, 255, 255);
         mat.transparency = 1;
@@ -48,7 +48,7 @@ public:
             }
         }
         pos.UpdateV(0, 2, 0);
-        objLoader::LoadObj("../data/cube", "", pos);
+        objLoader::LoadObj("../data/cube", "", pos);*/
     }
 
     //float s = 0;
