@@ -90,14 +90,14 @@ public:
 
     static void submitActor(Actor* actor)
     {
-        vector<pTriangle>* const tria = actor->getTriangles();
+        vector<Triangle>* const tria = actor->getTriangles();
         auto type = actor->getActorType();
         TranslateMesh(actor->getVertices(), actor->getPosition(), type);
 
         auto end = std::end(*tria);
         for (auto tri = std::begin(*tria); tri != end; ++tri)
         {
-            pTriangle2Triangle(&*tri, actor->getVertices(), actor->getMaterial(), tri->triangleData, type);
+            prepareTriangle(*tri, actor->getVertices(), actor->getMaterial(), type);
         }
     }
 
@@ -129,12 +129,14 @@ protected:
 
     static void renderTile(Tile* tile)
     {
+        Screen::ClearTile(tile);
         const int len = tile->aT_len;
+        Triangle triangle;
         for (int i = 0; i < len; i++)
         {
-            tdTriangle(*(tile->assignedTriangles[i]), tile);
+            triangle = *(tile->assignedTriangles[i]);
+            Screen::DrawTriangle(triangle, tile, &(textures[(triangle).materialp->textureId].textureData));
         }
-        Screen::ClearTile(tile);
     }
 
     static void clearTiles()
@@ -147,12 +149,12 @@ protected:
     }
 
 
-    static void pTriangle2Triangle(pTriangle* ptriangle, vector<Vertex>* vertices, Material* mat, Triangle& tri, ActorType* type)
+    static void prepareTriangle(Triangle& tri, vector<Vertex>* vertices, Material* mat, ActorType* type)
     {
         //Triangle tri;
-        tri.v0 = (*vertices)[ptriangle->v1].transformed;
-        tri.v1 = (*vertices)[ptriangle->v2].transformed;
-        tri.v2 = (*vertices)[ptriangle->v3].transformed;
+        tri.v0 = (*vertices)[tri.v0i].transformed;
+        tri.v1 = (*vertices)[tri.v1i].transformed;
+        tri.v2 = (*vertices)[tri.v2i].transformed;
 
         float factor = 255.0f / farMax;
         if (*type != ActorType::Skybox)
@@ -171,12 +173,11 @@ protected:
         //clipping plane intersection
         if (tri.v0.z <= clipNear || tri.v1.z <= clipNear || tri.v2.z <= clipNear || tri.v0.z > farMax || tri.v1.z > farMax || tri.v2.z > farMax)
             return;
+        //====
 
-
-        //===========================
-        Screen::PosToScreenCenter(&tri.v0);
-        Screen::PosToScreenCenter(&tri.v1);
-        Screen::PosToScreenCenter(&tri.v2);
+        Screen::PosToScreenCenter(&(tri.v0));
+        Screen::PosToScreenCenter(&(tri.v1));
+        Screen::PosToScreenCenter(&(tri.v2));
 
         //face normal check
         Vector3 a(tri.v1.x - tri.v0.x, tri.v1.y - tri.v0.y, tri.v1.z - tri.v0.z); //v1 - v0
@@ -190,10 +191,6 @@ protected:
         tri.normal.Normalize();
 
         tri.materialp = mat;
-        tri.uv0 = ptriangle->uv1;
-        tri.uv1 = ptriangle->uv2;
-        tri.uv2 = ptriangle->uv3;
-
         tri.type = *type;
 
         //bounding box
@@ -225,8 +222,6 @@ protected:
         {
             tiles[x].TS_addTriangle(&tri);
         }
-        
-        //return tri;
     }
 
     static void setRotation(Vector3 angle)
@@ -284,16 +279,6 @@ protected:
             }
         }
     }
-
-
-    static void tdTriangle(Triangle triangle, Tile* tile)
-    {
-        Screen::DrawTriangle(triangle, tile, &(textures[(triangle).materialp->textureId].textureData));
-
-        //debug
-        //putText(image, to_string(p3v.z), *Screen::PosToScreenCenter(&Point(p3v.x, p3v.y)), FONT_HERSHEY_SIMPLEX, 0.5f, Scalar(255, 255, 255), 1);
-    }
-
 };
 
 float Renderer::cosCamX = 0, Renderer::sinCamX = 0;

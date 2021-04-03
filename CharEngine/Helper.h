@@ -280,6 +280,9 @@ struct Material
 
 struct Triangle
 {
+	int v0i = 0;
+	int v1i = 0;
+	int v2i = 0;
 	Vector3 v0 = Vector3(0, 0, 0);
 	Vector3 v1 = Vector3(0, 0, 0);
 	Vector3 v2 = Vector3(0, 0, 0);
@@ -293,17 +296,6 @@ struct Triangle
 
 	Vector3 normal = Vector3(0, 0, 0);
 	ActorType type = ActorType::Common;
-};
-
-struct pTriangle
-{
-	int v1 = 0;
-	int v2 = 0;
-	int v3 = 0;
-	Vector2 uv1 = Vector2(0, 0);
-	Vector2 uv2 = Vector2(0, 0);
-	Vector2 uv3 = Vector2(0, 0);
-	Triangle triangleData;
 };
 
 struct Vertex

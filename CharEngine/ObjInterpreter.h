@@ -161,7 +161,7 @@ namespace objLoader
             *act.getActorType() = type;
             *(act.getName()) = "defaultxyz";
             Vector3 vertex = Vector3(0,0,0);
-            pTriangle tri;
+            Triangle tri;
             Vertex vert;
             vector<Vertex>* vertices;
             vector<Vector2> uvs;
@@ -211,19 +211,19 @@ namespace objLoader
                 case 'f':
                     xyz = 0;
                     vertex.x = getNext(&xyz, &line);
-                    tri.v2 = vertex.x - 1 - vertCount;
+                    tri.v1i = vertex.x - 1 - vertCount;
                     vertex.x = getNext(&xyz, &line, '/');
-                    tri.uv2 = uvs[vertex.x - 1];
+                    tri.uv1 = uvs[vertex.x - 1];
 
                     vertex.y = getNext(&xyz, &line);
-                    tri.v1 = vertex.y - 1 - vertCount;
+                    tri.v0i = vertex.y - 1 - vertCount;
                     vertex.y = getNext(&xyz, &line, '/');
-                    tri.uv1 = uvs[vertex.y - 1];
+                    tri.uv0 = uvs[vertex.y - 1];
 
                     vertex.z = getNext(&xyz, &line);
-                    tri.v3 = vertex.z - 1 - vertCount;
+                    tri.v2i = vertex.z - 1 - vertCount;
                     vertex.z = getNext(&xyz, &line, '/');
-                    tri.uv3 = uvs[vertex.z - 1];
+                    tri.uv2 = uvs[vertex.z - 1];
                     
 
                     act.getTriangles()->push_back(tri);

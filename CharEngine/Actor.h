@@ -7,7 +7,7 @@ class Actor
 {
 
 private:
-    std::vector<pTriangle> triangles;
+    std::vector<Triangle> triangles;
     std::vector<Vertex> vertices;
     Vector3 position = Vector3(0, 0, 0);
     std::string name;
@@ -15,7 +15,7 @@ private:
     ActorType actorType;
 
 public:
-    std::vector<pTriangle>* getTriangles()
+    std::vector<Triangle>* getTriangles()
     {
         return &triangles;
     }
