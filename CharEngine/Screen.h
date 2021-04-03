@@ -292,7 +292,7 @@ public:
 					e2 /= area;
 					e3 /= area;
 					depthl = 1 / (e1 * triangle.v0.z + e2 * triangle.v1.z + e3 * triangle.v2.z);
-					if (depth[x][y] > depthl)
+					if (depth[x + y * width] > depthl)
 					{
 						p1.x = x;
 						p1.y = y;
@@ -313,7 +313,7 @@ public:
 						}
 
 						(*pixel_placer)(&p1, &cx);
-						depth[x][y] = depthl;
+						depth[x + y * width] = depthl;
 					}
 					end = true;
 				}

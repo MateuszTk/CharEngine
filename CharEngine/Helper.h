@@ -36,8 +36,8 @@ typedef unsigned char uchar;
 #endif // SDL
 
 
-const int width = 1920;
-const int height = 1080;
+const int width = 1280;
+const int height = 720;
 const int halfOfWidth = width * 0.5f;
 const int halfOfHeight = height * 0.5f;
 float dist = 16;
