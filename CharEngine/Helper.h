@@ -317,13 +317,17 @@ struct Tile
 	Point pmax;
 	vector<Triangle*> assignedTriangles;
 	int aT_len = 0;
+	int vectorSize = 0;
 
 	//thread-safe add
-	void TS_addTriangle(Triangle* tri)
-	{
+	void TS_addTriangle(Triangle* tri) {
 		l_lock.lock();
 		assignedTriangles[aT_len] = tri;
 		aT_len++;
+		if (aT_len >= vectorSize) {
+			assignedTriangles.push_back(0); 
+			vectorSize++;
+		}
 		l_lock.unlock();
 	}
 

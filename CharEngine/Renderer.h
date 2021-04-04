@@ -103,6 +103,12 @@ public:
 
     static void initializeTiles()
     {
+        int verts = 1;
+        auto end = std::end(actors);
+        for (auto act = std::begin(actors); act != end; ++act) {
+            verts += act->getVertices()->size();
+        }
+
         for (int x = 0; x < numberOfTilesX; x++)
         {
             for (int y = 0; y < numberOfTilesY; y++)
@@ -110,10 +116,11 @@ public:
                 tiles[x].pmin = Point(x * tileWidth, y * tileHeight);
                 tiles[x].pmax = Point(x * tileWidth + tileWidth, y * tileHeight + tileHeight);
 
-                for (int i = 0; i < 100000; i++)
+                for (int i = 0; i < verts; i++)
                 {
                     tiles[x].assignedTriangles.push_back(0);
                 }
+                tiles[x].vectorSize = tiles[x].assignedTriangles.size();
             }
         }
     }
