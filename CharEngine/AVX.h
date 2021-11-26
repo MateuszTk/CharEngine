@@ -11,12 +11,6 @@
 
 namespace avx
 {
-	inline float* mulitply8f(__m256 a, __m256 b)
-	{
-		return (float*)(&_mm256_mul_ps(a, b));
-	}
-
-
 	const __m256 a2 = _mm256_setr_ps(0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f);
 	const __m256i a2i = _mm256_setr_epi32(0, 1, 2, 3, 4, 5, 6, 7);
 
@@ -59,8 +53,8 @@ namespace avx
 		return _mm256_add_epi32(_mm256_mullo_epi32(y, rows), x);
 	}
 
-	inline float* AVXpoint2PixelId(__m256 x, __m256 y, __m256 ch, __m256 rows) {
-		return (float*)&_mm256_mul_ps(_mm256_fmadd_ps(_mm256_floor_ps(y), rows, _mm256_floor_ps(x)), ch);
+	inline __m256 AVXpoint2TexelId(__m256 x, __m256 y, __m256 ch, __m256 rows) {
+		return _mm256_mul_ps(_mm256_fmadd_ps(_mm256_floor_ps(y), rows, _mm256_floor_ps(x)), ch);
 	}
 }
 

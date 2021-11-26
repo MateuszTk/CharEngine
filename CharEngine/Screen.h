@@ -163,7 +163,7 @@ public:
 
 	static void DrawTriangle(Triangle& triangle, Tile* tile, Mat* texture)
 	{
-		bool useDepth = triangle.type != ActorType::Skybox;
+		const bool useDepth = triangle.type != ActorType::Skybox;
 
 		fColor c0(triangle.materialp->color);
 		fColor c1(triangle.materialp->color);
@@ -230,8 +230,6 @@ public:
 		const __m256 AVXset2_8 = _mm256_set1_ps(triangle.v2.x);
 		const __m256 AVXset2_10 = _mm256_set1_ps(triangle.v2.y);
 
-		__m256* ptx = 0;
-		__m256* pty = 0;
 		const __m256 textureRows = _mm256_set1_ps(texture->rows);
 		const __m256 textureCols = _mm256_set1_ps(texture->cols - 1);
 
@@ -257,10 +255,10 @@ public:
 		const __m256 uv0y = _mm256_set1_ps(triangle.uv0.y);
 		const __m256 uv1y = _mm256_set1_ps(triangle.uv1.y);
 		const __m256 uv2y = _mm256_set1_ps(triangle.uv2.y);
-		float* cxR = 0;
-		float* cxG = 0;
-		float* cxB = 0;
-		float* texturePixelId = 0;
+		float cxR[8];
+		float cxG[8];
+		float cxB[8];
+		float texturePixelId[8];
 		__m256 cn_256 = _mm256_set1_ps(cn);
 
 		__m256 avxset0, avxset1;
@@ -351,19 +349,20 @@ public:
 						const __m256 depthl_256 = _mm256_div_ps(avx::oneSet, avx::AVXinterpolate(e1_256, v0z, e2_256, v1z, e3_256, v2z));
 						const __m256i pixelIdm = avx::AVXpoint2PixelId(avxset0i, avxset1i, avx::displayRows);
 						const int* const pixelId = (int*)&pixelIdm;
-						const int* const pixelIdCh = (int*)&_mm256_mullo_epi32(pixelIdm, avx::displayChannels);
+						const __m256i _pixelIdCh = _mm256_mullo_epi32(pixelIdm, avx::displayChannels);
+						const int* const pixelIdCh = (int*)&_pixelIdCh;
 
 						if (mode)
 						{
-							ptx = &_mm256_mul_ps(_mm256_mul_ps(avx::AVXinterpolate(e1_256, uv0x, e2_256, uv1x, e3_256, uv2x), depthl_256), textureRows);
-							pty = &_mm256_mul_ps(_mm256_mul_ps(avx::AVXinterpolate(e1_256, uv0y, e2_256, uv1y, e3_256, uv2y), depthl_256), textureCols);
-							texturePixelId = avx::AVXpoint2PixelId(*ptx, *pty, cn_256, textureRows);
+							const __m256 ptx = _mm256_mul_ps(_mm256_mul_ps(avx::AVXinterpolate(e1_256, uv0x, e2_256, uv1x, e3_256, uv2x), depthl_256), textureRows);
+							const __m256 pty = _mm256_mul_ps(_mm256_mul_ps(avx::AVXinterpolate(e1_256, uv0y, e2_256, uv1y, e3_256, uv2y), depthl_256), textureCols);
+							_mm256_storeu_ps(texturePixelId, avx::AVXpoint2TexelId(ptx, pty, cn_256, textureRows));
 						}
 						else
 						{
-							cxR = (float*)&_mm256_mul_ps(avx::AVXinterpolate(e1_256, c0R, e2_256, c1R, e3_256, c2R), depthl_256);
-							cxG = (float*)&_mm256_mul_ps(avx::AVXinterpolate(e1_256, c0G, e2_256, c1G, e3_256, c2G), depthl_256);
-							cxB = (float*)&_mm256_mul_ps(avx::AVXinterpolate(e1_256, c0B, e2_256, c1B, e3_256, c2B), depthl_256);
+							_mm256_storeu_ps(cxR,_mm256_mul_ps(avx::AVXinterpolate(e1_256, c0R, e2_256, c1R, e3_256, c2R), depthl_256));
+							_mm256_storeu_ps(cxG, _mm256_mul_ps(avx::AVXinterpolate(e1_256, c0G, e2_256, c1G, e3_256, c2G), depthl_256));
+							_mm256_storeu_ps(cxB, _mm256_mul_ps(avx::AVXinterpolate(e1_256, c0B, e2_256, c1B, e3_256, c2B), depthl_256));
 						}
 
 						int i;
