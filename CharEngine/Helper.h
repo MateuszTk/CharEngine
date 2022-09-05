@@ -24,6 +24,7 @@
 
 #include <cmath>
 #include <vector>
+#include <string>
 #include "ThreadPool.h"
 
 
@@ -68,6 +69,8 @@ const int numberOfTilesX = 11;
 const int numberOfTilesY = 1;
 const int tileWidth = width / numberOfTilesX;
 const int tileHeight = height / numberOfTilesY;
+
+typedef std::chrono::high_resolution_clock Clock;
 
 enum class ActorType
 {
@@ -351,3 +354,122 @@ extern SDL_Texture* texture;
 extern SDL_Window* window;
 #endif // SDL
 
+namespace CharEngine {
+	class Camera {
+	public:
+		enum class Type {
+			Fixed,
+			MouseControl
+		};
+		const Type camType;
+		Vector3 angle = Vector3(0, 0, 0);
+		Vector3 position = Vector3(0, 0, 0);
+
+		Camera(Type type) : camType(type) {
+#ifdef OPENCV
+			setMouseCallback("Display window", this->mouse_callback);
+#endif // OPENCV 
+		}
+
+		void update() {
+			char key = ' ';
+#ifdef SDL
+			updateMousePosition();
+#endif
+#ifdef OPENCV
+			key = (char)waitKey(1);
+#endif
+			switch (key) {
+				case ('q'):
+					this->position.y += 1;
+					break;
+				case ('e'):
+					this->position.y -= 1;
+					break;
+				case ('w'):
+					this->position.z += 1;
+					break;
+				case ('s'):
+					this->position.z -= 1;
+					break;
+				case ('a'):
+					this->position.x += 1;
+					break;
+				case ('d'):
+					this->position.x -= 1;
+					break;
+			}
+
+			this->angle.UpdateV(y / 50.0f, x / 50.0f, 0);
+		}
+
+	private:
+		int x = 0, y = 180;
+
+#ifdef OPENCV
+		void mouse_callback(int event, int xm, int ym, int flag, void* param) {
+			if (event == EVENT_MOUSEMOVE) {
+				x = xm;
+				y = ym;
+			}
+			else if (event == EVENT_MOUSEWHEEL) {
+				if (getMouseWheelDelta(flag) > 0)
+					dist -= 0.8f;
+				else
+					dist += 0.8f;
+			}
+		}
+#endif // OPENCV
+
+#ifdef SDL
+		SDL_Event e;
+
+		void updateMousePosition() {
+			while (SDL_PollEvent(&e) != 0) {
+				if (e.type == SDL_MOUSEMOTION) {
+					SDL_GetGlobalMouseState(&x, &y);
+				}
+			}
+		}
+#endif
+	};
+
+
+	class FPScounter {
+	public:
+		void tick() {
+			auto t2 = Clock::now();
+			deltaTime = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+			t1 = Clock::now();
+			avgDelta += deltaTime;
+
+			if (fpsDelay >= _samples) {
+				fps = to_string((float)_samples * 1000.0f / avgDelta);
+				avgDelta = 0;
+				fpsDelay = 0;
+				cout << "FPS: " << fps << '\n';
+			}
+			else
+				fpsDelay++;
+
+		}
+
+		FPScounter() {
+			t1 = Clock::now();
+		}
+
+		FPScounter(int samples) {
+			t1 = Clock::now();
+			_samples = samples;
+		}
+
+	private:	
+		int _samples = 20;
+		Clock::time_point t1;
+		int fpsDelay = 0;
+		string fps;
+		float avgDelta = 0;
+	};
+
+
+}

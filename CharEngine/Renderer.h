@@ -24,14 +24,13 @@ class Renderer
 
 public:
 
-    virtual void Update() = 0;
-    virtual void Start() = 0;
-
-    static void render()
+    static void render(CharEngine::Camera& camera)
     {
+        currentCamera = &camera;
+
         vector<Actor*> passActors;
         clearTiles();
-        setRotation(cameraAngle);
+        setRotation(currentCamera->angle);
 
 
         //opaque pass
@@ -115,6 +114,7 @@ public:
             {
                 tiles[x].pmin = Point(x * tileWidth, y * tileHeight);
                 tiles[x].pmax = Point(x * tileWidth + tileWidth, y * tileHeight + tileHeight);
+                tiles[x].assignedTriangles.clear();
 
                 for (int i = 0; i < verts; i++)
                 {
@@ -129,6 +129,7 @@ private:
     static float cosCamX, sinCamX;
     static float cosCamY, sinCamY;
     static float cosCamZ, sinCamZ;
+    static CharEngine::Camera* currentCamera;
 
 protected:
     
@@ -281,7 +282,7 @@ protected:
         {
             for (auto vertex = std::begin(*vertices); vertex != end; ++vertex)
             {
-                vertex->transformed = TdToScreen(vertex->raw.x + cameraPosition.x + position->x, vertex->raw.y + cameraPosition.y + position->y, vertex->raw.z + cameraPosition.z + position->z, dist);
+                vertex->transformed = TdToScreen(vertex->raw.x + currentCamera->position.x + position->x, vertex->raw.y + currentCamera->position.y + position->y, vertex->raw.z + currentCamera->position.z + position->z, dist);
             }
         }
         else
@@ -297,3 +298,4 @@ protected:
 float Renderer::cosCamX = 0, Renderer::sinCamX = 0;
 float Renderer::cosCamY = 0, Renderer::sinCamY = 0;
 float Renderer::cosCamZ = 0, Renderer::sinCamZ = 0;
+CharEngine::Camera* Renderer::currentCamera = 0;

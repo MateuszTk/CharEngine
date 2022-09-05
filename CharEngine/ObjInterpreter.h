@@ -51,6 +51,11 @@ namespace objLoader
     //returns loaded actors names
 	std::vector<std::string> LoadObj(string path, string actorName = "", Vector3 position = Vector3(0, 0, 0), ActorType type = ActorType::Common)
 	{
+        //create the default texture for parts without texture assigned in .mtl file
+        if (textures.size() <= 0) {
+            Texture emptyTexture;
+            textures.push_back(emptyTexture);
+        }
 
         std::string local = directoryOf( path );
 
