@@ -92,6 +92,7 @@ public:
 	static void GetPixelColor(Point* point, ColorA* color, int cn, Mat* im)
 	{
 		int i = point->y * im->rows * cn + point->x * cn;
+		i = abs(i % (im->rows * im->cols * im->channels()));
 		color->R = im->data[i];
 		color->G = im->data[i + 1];
 		color->B = im->data[i + 2];
@@ -99,6 +100,7 @@ public:
 
 	static void idGetPixelColor(int id, ColorA* color, Mat* im)
 	{
+		id = abs(id % (im->rows * im->cols * im->channels()));
 		color->R = im->data[id];
 		color->G = im->data[id + 1];
 		color->B = im->data[id + 2];
@@ -142,7 +144,7 @@ public:
 #ifdef OPENCV
 	void DebugDepth()
 	{
-		Point p;
+		/*Point p;
 		ColorA c(0, 0, 0, 0);
 		for (int x = 0; x < image.cols; x++)
 		{
@@ -157,7 +159,7 @@ public:
 		imshow("Display window", image);
 		waitKey(1);
 		image.setTo(Scalar(0, 0, 0));
-		fill_n(&depth[0][0], width * height, 255);
+		fill_n(&depth[0][0], width * height, 255);*/
 	}
 #endif // OPENCV
 

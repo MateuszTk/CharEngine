@@ -72,7 +72,7 @@ public:
         auto end2 = std::end(passActors);
         for (auto act = std::begin(passActors); act != end2; ++act)
         {
-            DO_ACTOR_JOB( &*act );
+            DO_ACTOR_JOB( &**act );
         }
 
         WAIT_FOR_JOBS();
@@ -178,8 +178,14 @@ protected:
         }
 
         //clipping plane intersection
-        if (tri.v0.z <= clipNear || tri.v1.z <= clipNear || tri.v2.z <= clipNear || tri.v0.z > farMax || tri.v1.z > farMax || tri.v2.z > farMax)
+        if ((tri.v0.z <= clipNear || tri.v1.z <= clipNear || tri.v2.z <= clipNear) || tri.v0.z > farMax || tri.v1.z > farMax || tri.v2.z > farMax)//((tri.v0.z <= clipNear && tri.v1.z <= clipNear && tri.v2.z <= clipNear) || tri.v0.z > farMax || tri.v1.z > farMax || tri.v2.z > farMax)
             return;
+
+        /*if (tri.v0.z <= clipNear && tri.v1.z > clipNear && tri.v2.z > clipNear) {
+            tri.v0.x = 1000.0f;//(tri.v1.z * tri.v0.x - tri.v0.z * tri.v1.x) / (tri.v1.z - tri.v0.z);
+            tri.v0.y = 10.0f;//(tri.v1.z * tri.v0.y - tri.v0.z * tri.v1.y) / (tri.v1.z - tri.v0.z);
+            tri.v0.z = 100.0f;//0.001f;
+        }*/
         //====
 
         Screen::PosToScreenCenter(&(tri.v0));

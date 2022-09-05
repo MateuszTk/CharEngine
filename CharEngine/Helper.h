@@ -4,6 +4,7 @@
 #define SDL
 //#define OPENCV
 //#define DISABLE_AVX
+#define TRANSPARENCY
 
 
 #include <iostream>
@@ -74,25 +75,26 @@ enum class ActorType
 	Skybox
 };
 
+template <typename T>
 struct Color
 {
-	uchar R;
-	uchar G;
-	uchar B;
-	Color(uchar r, uchar g, uchar b)
+	T R;
+	T G;
+	T B;
+	Color(T r, T g, T b)
 	{
 		R = r;
 		G = g;
 		B = b;
 	}
-	void UpdateC(uchar r, uchar g, uchar b)
+	void UpdateC(T r, T g, T b)
 	{
 		R = r;
 		G = g;
 		B = b;
 	}
 
-	void operator *=(const float& w)
+	void operator *=(const T& w)
 	{
 		R *= w;
 		G *= w;
@@ -112,7 +114,7 @@ struct fColor
 		B = b;
 	}
 
-	fColor(Color& c)
+	fColor(Color<uchar>& c)
 	{
 		R = c.R;
 		G = c.G;
@@ -133,7 +135,7 @@ struct fColor
 		B *= w;
 	}
 
-	void operator =(const Color& w)
+	void operator =(const Color<uchar>& w)
 	{
 		R = w.R;
 		G = w.G;
@@ -273,7 +275,7 @@ struct Mat
 struct Material
 {
 	std::string name;
-	Color color = Color(255, 255, 255);
+	Color<uchar> color = Color<uchar>(255, 255, 255);
 	float transparency = 1.0f;
 	int textureId;
 };
