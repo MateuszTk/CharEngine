@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
 
     CharEngine::Camera camera(CharEngine::Camera::Type::MouseControl);
 
-    auto car = CharEngine::ObjLoader::LoadObj("../assets/car/car");
+    auto car = CharEngine::ObjLoader::LoadObj("../../assets/car/car");
 
     CharEngine::Renderer::initializeTiles();
     
