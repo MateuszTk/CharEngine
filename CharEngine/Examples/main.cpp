@@ -8,7 +8,7 @@
 
 int main(int argc, char* argv[])
 {
-    CharEngine::Screen::CreateWindow(1280, 720);
+    CharEngine::Screen::CreateWindow(800, 600);
 
     CharEngine::Camera camera(CharEngine::Camera::Type::MouseControl);
 

@@ -16,14 +16,22 @@ namespace CharEngine {
 			Config::halfOfHeight = _height / 2;
 			Config::tileWidth = Config::width / Config::numberOfTilesX;
 			Config::tileHeight = Config::height / Config::numberOfTilesY;
-#ifndef DISABLE_AVX
+
+#ifdef MULTITHREADING
+			std::cout << "Using " << Config::threads << " threads\n";
+#endif
+
+#ifdef AVX
+			std::cout << "Using AVX2\n";
 			avx::displayRows = _mm256_set1_epi32(Config::width);
+#else
+			std::cout << "AVX2 disabled or unavailiable\n";
 #endif		
 
 #ifdef OPENCV
 			namedWindow("Display window", WINDOW_AUTOSIZE); // Create a window for display.
 			Global::image = Mat::zeros(Config::height, Config::width, CV_8UC3);
-#endif // OPENCV
+#endif
 
 #ifdef SDL
 			SDL_Init(SDL_INIT_EVERYTHING);

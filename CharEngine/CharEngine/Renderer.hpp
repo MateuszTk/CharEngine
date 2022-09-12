@@ -7,7 +7,7 @@
 #ifdef MULTITHREADING
 #   define DO_ACTOR_JOB(job) Global::pool.doJob(std::bind(submitActor, job));
 #   define DO_TILE_JOB(job) Global::pool.doJob(std::bind(renderTile, job));
-#   define WAIT_FOR_JOBS() while (!Global::pool.isFinished()) {}
+#   define WAIT_FOR_JOBS() waitForJobFun()
 #else
 #   define DO_ACTOR_JOB(job) submitActor(job);
 #   define DO_TILE_JOB(job) renderTile(job);
@@ -106,6 +106,11 @@ namespace CharEngine {
         static float cosCamY, sinCamY;
         static float cosCamZ, sinCamZ;
         static CharEngine::Camera* currentCamera;
+
+        static void waitForJobFun() {
+            volatile int antiOptimizer = 0;
+            while (!Global::pool.isFinished()) { antiOptimizer++; }
+        }
 
         static void submitActor(Actor* actor) {
             vector<Triangle>* const tria = actor->getTriangles();

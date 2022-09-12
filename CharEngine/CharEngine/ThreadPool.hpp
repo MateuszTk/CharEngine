@@ -38,7 +38,7 @@ public:
         }
 
         // Wait for all threads to stop
-        std::cerr << "Joining threads" << std::endl;
+        std::cout << "Joining threads" << std::endl;
         for (auto& thread : threads_)
             thread.join();
     }
