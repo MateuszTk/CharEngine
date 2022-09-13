@@ -318,7 +318,9 @@ namespace CharEngine {
 #endif // OPENCV 
 		}
 
-		//returns pressed key SDL_Scancode, returns SDL_SCANCODE_HOME if no key pressed
+		/*returns pressed key SDL_Scancode,
+		returns SDL_SCANCODE_HOME if no key pressed,
+		returns SDL_SCANCODE_ESCAPE if user tries to close the window*/
 		SDL_Scancode update() {
 			SDL_Scancode key = SDL_SCANCODE_HOME;
 			while (SDL_PollEvent(&e) != 0) {
@@ -353,6 +355,10 @@ namespace CharEngine {
 						default:
 							break;
 					}
+				}
+				//return SDL_SCANCODE_ESCAPE if user tries to close the window
+				if (e.window.event == SDL_WINDOWEVENT_CLOSE) {
+					key = SDL_SCANCODE_ESCAPE;
 				}
 			}
 

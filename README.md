@@ -9,9 +9,9 @@ Features:
 
 
 ## Building 
-Use this command in the ./CharEngine/Examples directory to compile the Char Engine sample project   
+Use the following commands in the ./CharEngine/Examples directory to compile the Char Engine sample project   
 #### Linux:   
-If you don't have SDL install it first.  
+If you don't have SDL install it first:  
 ```sh
 sudo apt-get install libsdl2-ttf-dev
 ```
@@ -21,7 +21,8 @@ g++ main.cpp `sdl2-config --cflags --libs` -mavx2 -mfma -lpthread -std=c++11
 ```
 
 #### Windows:   
-If you don't have SDL [install](https://github.com/libsdl-org/SDL/releases) it first. 
+If you don't have SDL [install](https://github.com/libsdl-org/SDL/releases) it first.    
+Then build with:
 ```cmd
 cl /EHsc /MD /arch:AVX2 /O2 main.cpp /I "SDL2-2.0.14\include" /link /LIBPATH:"SDL2-2.0.14\lib\x86" shell32.lib SDL2.lib SDL2main.lib /SUBSYSTEM:CONSOLE /out:main.exe
 ```
