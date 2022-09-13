@@ -294,58 +294,71 @@ namespace CharEngine {
 #endif // SDL
 	}
 
-	class Camera {
-	public:
-		enum class Type {
-			Fixed,
-			MouseControl
-		};
-		const Type camType;
+	struct Camera {
 		Vector3 angle = Vector3(0, 0, 0);
 		Vector3 position = Vector3(0, 0, 0);
-		float dist = 16;
+		float dist = 10.0f;
 		float fov = 1.0f;//(float)tan(80 / 2);
 		int farMax = 255;
 		int clipNear = 0;
 
-		Camera(Type type) : camType(type) {
+		Camera() = default;
+		Camera(Vector3 _angle, Vector3 _position) : angle(_angle), position(_position){
+
+		}
+	};
+
+	//TODO: clean up this mess (?remove OpenCV support?)
+	class Controller {
+	public:
+		Camera* camera;
+		Controller(Camera* _camera) : camera(_camera){
 #ifdef OPENCV
 			setMouseCallback("Display window", mouse_callback, this);
 #endif // OPENCV 
 		}
 
-		void update() {
-			char key = ' ';
-#ifdef SDL
-			updateMousePosition();
-#endif
-#ifdef OPENCV
-			key = (char)waitKey(1);
-#endif
-			switch (key) {
-				case ('q'):
-					this->position.y += 1;
-					break;
-				case ('e'):
-					this->position.y -= 1;
-					break;
-				case ('w'):
-					this->position.z += 1;
-					break;
-				case ('s'):
-					this->position.z -= 1;
-					break;
-				case ('a'):
-					this->position.x += 1;
-					break;
-				case ('d'):
-					this->position.x -= 1;
-					break;
+		//returns pressed key SDL_Scancode, returns SDL_SCANCODE_HOME if no key pressed
+		SDL_Scancode update() {
+			SDL_Scancode key = SDL_SCANCODE_HOME;
+			while (SDL_PollEvent(&e) != 0) {
+				if (e.type == SDL_EventType::SDL_MOUSEMOTION) {
+					SDL_GetGlobalMouseState(&x, &y);
+				}
+				if (e.type == SDL_EventType::SDL_MOUSEWHEEL) {
+					camera->dist -= (float)e.wheel.y * 0.5f;
+				}
+				if (e.type == SDL_EventType::SDL_KEYDOWN) {
+					key = e.key.keysym.scancode;
+
+					switch (key) {
+						case (SDL_SCANCODE_Q):
+							camera->position.y += 1;
+							break;
+						case (SDL_SCANCODE_E):
+							camera->position.y -= 1;
+							break;
+						case (SDL_SCANCODE_W):
+							camera->position.z += 1;
+							break;
+						case (SDL_SCANCODE_S):
+							camera->position.z -= 1;
+							break;
+						case (SDL_SCANCODE_A):
+							camera->position.x += 1;
+							break;
+						case (SDL_SCANCODE_D):
+							camera->position.x -= 1;
+							break;
+						default:
+							break;
+					}
+				}
 			}
 
-			this->angle.UpdateV(y / 50.0f, x / 50.0f, 0);
-		}
-
+			camera->angle.UpdateV(y / 50.0f, x / 50.0f, 0);
+			return key;
+	}
 	private:
 		int x = 0, y = 180;
 
@@ -367,38 +380,31 @@ namespace CharEngine {
 
 #ifdef SDL
 		SDL_Event e;
-
-		void updateMousePosition() {
-			while (SDL_PollEvent(&e) != 0) {
-				if (e.type == SDL_MOUSEMOTION) {
-					SDL_GetGlobalMouseState(&x, &y);
-				}
-			}
-		}
 #endif
 	};
 
 
 	class FPScounter {
 	public:
-		void tick() {
+		int tick(bool print = true) {
 			auto t2 = Clock::now();
 			deltaTime = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 			t1 = Clock::now();
 			avgDelta += deltaTime;
+			int iFrameRate = 0;
 
 			if (fpsDelay >= _samples) {
 				fps = to_string((float)_samples * 1000.0f / avgDelta);
 				avgDelta = 0;
 				fpsDelay = 0;
-				cout << "FPS: " << fps << '\n';
+				if(print) cout << "FPS: " << fps << '\n';
 			}
-			else
-				fpsDelay++;
+			else fpsDelay++;
 
+			return iFrameRate;
 		}
 
-		FPScounter(int samples = 20) {
+		FPScounter(int samples = 40) {
 			t1 = Clock::now();
 			_samples = samples;
 		}

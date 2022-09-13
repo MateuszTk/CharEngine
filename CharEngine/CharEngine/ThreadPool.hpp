@@ -37,6 +37,9 @@ public:
             condVar_.notify_all();
         }
 
+        std::cout << "Closing ThreadPool" << std::endl;
+        delete[] occupied_threads_;
+
         // Wait for all threads to stop
         std::cout << "Joining threads" << std::endl;
         for (auto& thread : threads_)

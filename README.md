@@ -5,9 +5,8 @@ Features:
 - Transparency
 - Object loading
 - AVX acceleration (Wow!)  
-- Multithreaded rendering
+- Multithreaded rendering   
 
-See some epic examples in `./screenshots/`
 
 ## Building 
 Use this command in the ./CharEngine/Examples directory to compile the Char Engine sample project   
