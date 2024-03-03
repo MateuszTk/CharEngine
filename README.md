@@ -17,7 +17,7 @@ sudo apt-get install libsdl2-ttf-dev
 ```
 Then build with:
 ```sh
-g++ main.cpp `sdl2-config --cflags --libs` -mavx2 -mfma -lpthread -std=c++11
+g++ main.cpp `sdl2-config --cflags --libs` -mavx2 -mfma -lpthread -std=c++11 -02
 ```
 
 #### Windows:   

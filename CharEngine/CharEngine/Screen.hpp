@@ -22,7 +22,7 @@ namespace CharEngine {
 #endif
 
 #ifdef AVX
-			std::cout << "Using AVX2\n";
+			std::cout << "AVX2 available\n";
 			avx::displayRows = _mm256_set1_epi32(Config::width);
 #else
 			std::cout << "AVX2 disabled or unavailiable\n";

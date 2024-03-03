@@ -37,7 +37,15 @@ public:
             }
         }
 
-        return(v && jobs_.empty());
+        // DO NOT OPTIMIZE THIS
+        if (active_threads > 100000){
+            active_threads = 1;
+        }
+        if (active_threads < 0){
+            std::cout << "Wait" << std::endl;
+        }
+
+        return(v && jobs_.empty() && active_threads > 0);
     }
 
     void resize(int threads) {
@@ -107,7 +115,7 @@ protected:
                 jobs_.pop();
 
             }
-
+            active_threads++;
             // Do the job without holding any locks
             job();
             occupied_threads_[i] = false;
@@ -120,7 +128,8 @@ protected:
     bool shutdown_;
     std::queue <std::function <void(void)>> jobs_;
     std::vector <std::thread> threads_;
-    bool* occupied_threads_;
+    volatile bool* occupied_threads_;
     int threads_n;
     bool log = false;
+    volatile int active_threads = 0;
 };
