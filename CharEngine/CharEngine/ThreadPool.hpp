@@ -9,45 +9,18 @@
 #include <vector>
 #include <algorithm>
 
-class ThreadPool
-{
+class ThreadPool {
 public:
 
-    ThreadPool(int threads) : shutdown_(false)
-    {
-        // Create the specified number of threads
-        threads_n = threads;
-        occupied_threads_ = new bool[threads];
-        threads_.reserve(threads);
-
-        for (int i = 0; i < threads; ++i)
-        {
-            threads_.emplace_back(std::bind(&ThreadPool::threadEntry, this, i));
-            occupied_threads_[i] = false;
-        }
+    ThreadPool(int threads) : shutdown_(false) {
+        init(threads);
     }
 
-    ~ThreadPool()
-    {
-        {
-            // Unblock any threads and tell them to stop
-            std::unique_lock <std::mutex> l(lock_);
-
-            shutdown_ = true;
-            condVar_.notify_all();
-        }
-
-        std::cout << "Closing ThreadPool" << std::endl;
-        delete[] occupied_threads_;
-
-        // Wait for all threads to stop
-        std::cout << "Joining threads" << std::endl;
-        for (auto& thread : threads_)
-            thread.join();
+    ~ThreadPool() {
+        close();
     }
 
-    void doJob(std::function <void(void)> func)
-    {
+    void doJob(std::function <void(void)> func) {
         // Place a job on the queu and unblock a thread
         std::unique_lock <std::mutex> l(lock_);
 
@@ -55,13 +28,10 @@ public:
         condVar_.notify_one();
     }
 
-    bool isFinished()
-    {
+    bool isFinished() {
         bool v = true;
-        for (int i = 0; i < threads_n; i++)
-        {
-            if (occupied_threads_[i] == true)
-            {
+        for (int i = 0; i < threads_n; i++) {
+            if (occupied_threads_[i] == true) {
                 v = false;
                 break;
             }
@@ -70,14 +40,55 @@ public:
         return(v && jobs_.empty());
     }
 
+    void resize(int threads) {
+        close();
+        init(threads);
+    }
+
+    void setLog(bool log) {
+		this->log = log;
+	}
+
 protected:
 
-    void threadEntry(int i)
-    {
+    void close() {
+        {
+            // Unblock any threads and tell them to stop
+            std::unique_lock <std::mutex> l(lock_);
+
+            shutdown_ = true;
+            condVar_.notify_all();
+        }
+
+        if (log) std::cout << "Closing ThreadPool" << std::endl;
+        delete[] occupied_threads_;
+
+        // Wait for all threads to stop
+        if (log) std::cout << "Joining threads" << std::endl;
+        for (auto& thread : threads_)
+            thread.join();
+
+        threads_.clear();
+        jobs_ = {};
+    }
+
+    void init(int threads) {
+        shutdown_ = false;
+        // Create the specified number of threads
+        threads_n = threads;
+        occupied_threads_ = new bool[threads];
+        threads_.reserve(threads);
+
+        for (int i = 0; i < threads; ++i) {
+            threads_.emplace_back(std::bind(&ThreadPool::threadEntry, this, i));
+            occupied_threads_[i] = false;
+        }
+    }
+
+    void threadEntry(int i) {
         std::function <void(void)> job;
 
-        while (1)
-        {
+        while (1) {
             {
                 std::unique_lock <std::mutex> l(lock_);
 
@@ -86,16 +97,15 @@ protected:
 
                 //occupied_threads_[i] = true;
 
-                if (jobs_.empty())
-                {
-                    std::cerr << "Thread " << i << " terminates" << std::endl;
+                if (jobs_.empty()) {
+                    if (log) std::cout << "Thread " << i << " terminates" << std::endl;
                     return;
                 }
-               
+
                 occupied_threads_[i] = true;
                 job = std::move(jobs_.front());
                 jobs_.pop();
-                
+
             }
 
             // Do the job without holding any locks
@@ -112,4 +122,5 @@ protected:
     std::vector <std::thread> threads_;
     bool* occupied_threads_;
     int threads_n;
+    bool log = false;
 };

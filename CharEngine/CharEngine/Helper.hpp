@@ -32,10 +32,16 @@ namespace CharEngine {
 #endif // SDL
 
 	namespace Config {
-		int width = 1280;
+		int width = 1080;
 		int height = 720;
 		int halfOfWidth = width * 0.5f;
 		int halfOfHeight = height * 0.5f;
+#ifndef DISABLE_AVX
+		bool useAVX = true;
+#else
+		const bool useAVX = false;
+#endif
+	
 		
 #ifdef SDL
 		const int channels = 4;
@@ -45,7 +51,7 @@ namespace CharEngine {
 #endif
 #ifdef MULTITHREADING
 		const int threads = thread::hardware_concurrency() - 1;
-		const int numberOfTilesX = threads;
+		const int numberOfTilesX = 20;
 #else
 		const int numberOfTilesX = 11;
 #endif
@@ -312,7 +318,7 @@ namespace CharEngine {
 	class Controller {
 	public:
 		Camera* camera;
-		Controller(Camera* _camera) : camera(_camera){
+		Controller(Camera* _camera, bool _userControlled = true) : camera(_camera), userControlled(_userControlled){
 #ifdef OPENCV
 			setMouseCallback("Display window", mouse_callback, this);
 #endif // OPENCV 
@@ -324,36 +330,38 @@ namespace CharEngine {
 		SDL_Scancode update() {
 			SDL_Scancode key = SDL_SCANCODE_HOME;
 			while (SDL_PollEvent(&e) != 0) {
-				if (e.type == SDL_EventType::SDL_MOUSEMOTION) {
-					SDL_GetGlobalMouseState(&x, &y);
-				}
-				if (e.type == SDL_EventType::SDL_MOUSEWHEEL) {
-					camera->dist -= (float)e.wheel.y * 0.5f;
-				}
-				if (e.type == SDL_EventType::SDL_KEYDOWN) {
-					key = e.key.keysym.scancode;
+				if (userControlled) {
+					if (e.type == SDL_EventType::SDL_MOUSEMOTION) {
+						SDL_GetGlobalMouseState(&x, &y);
+					}
+					if (e.type == SDL_EventType::SDL_MOUSEWHEEL) {
+						camera->dist -= (float)e.wheel.y * 0.5f;
+					}
+					if (e.type == SDL_EventType::SDL_KEYDOWN) {
+						key = e.key.keysym.scancode;
 
-					switch (key) {
-						case (SDL_SCANCODE_Q):
-							camera->position.y += 1;
-							break;
-						case (SDL_SCANCODE_E):
-							camera->position.y -= 1;
-							break;
-						case (SDL_SCANCODE_W):
-							camera->position.z += 1;
-							break;
-						case (SDL_SCANCODE_S):
-							camera->position.z -= 1;
-							break;
-						case (SDL_SCANCODE_A):
-							camera->position.x += 1;
-							break;
-						case (SDL_SCANCODE_D):
-							camera->position.x -= 1;
-							break;
-						default:
-							break;
+						switch (key) {
+							case (SDL_SCANCODE_Q):
+								camera->position.y += 1;
+								break;
+							case (SDL_SCANCODE_E):
+								camera->position.y -= 1;
+								break;
+							case (SDL_SCANCODE_W):
+								camera->position.z += 1;
+								break;
+							case (SDL_SCANCODE_S):
+								camera->position.z -= 1;
+								break;
+							case (SDL_SCANCODE_A):
+								camera->position.x += 1;
+								break;
+							case (SDL_SCANCODE_D):
+								camera->position.x -= 1;
+								break;
+							default:
+								break;
+						}
 					}
 				}
 				//return SDL_SCANCODE_ESCAPE if user tries to close the window
@@ -364,9 +372,16 @@ namespace CharEngine {
 
 			camera->angle.UpdateV(y / 50.0f, x / 50.0f, 0);
 			return key;
-	}
+		}
+
+		void setRotation(float x, float y) {
+			this->x = x;
+			this->y = y;
+		}
+
 	private:
 		int x = 0, y = 180;
+		bool userControlled;
 
 #ifdef OPENCV
 		static void mouse_callback(int event, int xm, int ym, int flag, void* param) {
@@ -392,7 +407,7 @@ namespace CharEngine {
 
 	class FPScounter {
 	public:
-		int tick(bool print = true) {
+		int tick(bool print = true, bool newLine = false) {
 			auto t2 = Clock::now();
 			deltaTime = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 			t1 = Clock::now();
@@ -401,13 +416,23 @@ namespace CharEngine {
 
 			if (fpsDelay >= _samples) {
 				fps = to_string((float)_samples * 1000.0f / avgDelta);
+				if (_callback != nullptr) _callback(avgDelta, _samples);
 				avgDelta = 0;
 				fpsDelay = 0;
-				if(print) cout << "FPS: " << fps << '\n';
+				if (print) {
+					if (newLine)
+						cout << "FPS: " << fps << '\n';
+					else
+						cout << "\rFPS: " << fps;
+				}
 			}
 			else fpsDelay++;
 
 			return iFrameRate;
+		}
+
+		void addCallback(const function<void(float, int)>& callback) {
+			_callback = callback;
 		}
 
 		FPScounter(int samples = 40) {
@@ -416,6 +441,7 @@ namespace CharEngine {
 		}
 
 	private:
+		function<void(float, int)> _callback;
 		float deltaTime = 0;
 		int _samples;
 		Clock::time_point t1;
