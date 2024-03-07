@@ -8,3 +8,5 @@ x64/
 CharEngine/Debug/
 CharEngine/x64/
 wiki/
+external/
+build/

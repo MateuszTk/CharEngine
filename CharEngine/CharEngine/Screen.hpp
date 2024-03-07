@@ -18,11 +18,11 @@ namespace CharEngine {
 			Config::tileHeight = Config::height / Config::numberOfTilesY;
 
 #ifdef MULTITHREADING
-			std::cout << "Using " << Config::threads << " threads\n";
+			//std::cout << "Using " << Config::threads << " threads\n";
 #endif
 
 #ifdef AVX
-			std::cout << "AVX2 available\n";
+			//std::cout << "AVX2 available\n";
 			avx::displayRows = _mm256_set1_epi32(Config::width);
 #else
 			std::cout << "AVX2 disabled or unavailiable\n";

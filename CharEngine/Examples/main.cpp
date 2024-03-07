@@ -30,35 +30,43 @@ void print_cpu_freq(std::ofstream& log) {
 }
 #endif
 
-int main(int argc, char* argv[])
-{
-    // test modes:
-    // full
-    // simd_off
-    // simd_on
-
+int main(int argc, char* argv[]) {
     // read from argv
-    std::string mode = "full";
-    if (argc > 1) {
-        mode = argv[1];
-        // remove following dashes
-        if (mode[0] == '-') {
-            mode = mode.substr(1);
-        }
-        std::cout << "Mode: " << mode << '\n';
-    }
+    std::string mode = "auto";
+    int threads = 1;
+    while (argc > 1) {
+        std::string arg = argv[argc - 1];
 
-    if (mode == "simd_off") {
-        CharEngine::Config::useAVX = false;
-        std::cout << "AVX OFF\n";
-    }
-    else if (mode == "simd_on") {
-        CharEngine::Config::useAVX = true;
-        std::cout << "AVX ON\n";
-    }
-    else{
-        std::cout << "Option not recognized, using full mode\n";
-        mode = "full";
+        // decapitalize
+        std::transform(arg.begin(), arg.end(), arg.begin(), ::tolower);
+
+        if (arg.find("mode=") != std::string::npos) {
+			mode = arg.substr(arg.find("=") + 1);
+		}
+        else if (arg.find("threads=") != std::string::npos) {
+            threads = std::stoi(arg.substr(arg.find("=") + 1));
+            threads = std::max(1, std::min(threads, 1000));
+		}
+		else if (arg.find("simd=") != std::string::npos) {
+            std::string avxBool = arg.substr(arg.find("=") + 1);
+            if (avxBool == "on" || avxBool == "true") {
+				CharEngine::Config::useAVX = true;
+				std::cout << "AVX ON\n";
+			}
+			else if (avxBool == "off" || avxBool == "false") {
+				CharEngine::Config::useAVX = false;
+				std::cout << "AVX OFF\n";
+			}
+		}
+        else if (arg.find("help") != std::string::npos) {
+			std::cout << "Usage: " << argv[0] << " [mode=auto|manual] [threads=1-1000] [simd=on|off]\n";
+			return 0;
+		}
+        else {
+            std::cout << "Option '" << arg << "' not recognized\n";
+        }
+
+        argc--;
     }
 
     std::ofstream file("log_" + mode + ".txt");
@@ -78,11 +86,11 @@ int main(int argc, char* argv[])
     CharEngine::Renderer::initializeTiles();
 
     //(Optional) Initialize framerate counter
-    CharEngine::FPScounter fps(500);
+    const int frames = 500;
+    CharEngine::FPScounter fps(frames);
 
-    CharEngine::Global::pool.resize(1);
+    CharEngine::Global::pool.resize(threads);
 
-    int threads = 0;
     fps.addCallback([&](float time, int frames) {
         if(threads == 0) {
             std::cout << "Warmup done\n";
@@ -96,32 +104,31 @@ int main(int argc, char* argv[])
             #endif
             file << std::endl;
         }
-        threads++;
-        CharEngine::Global::pool.resize(threads);
+        if (mode == "auto") {
+            threads++;
+            CharEngine::Global::pool.resize(threads);
+        }
 	});
 
     int loop = 0;
 
     while (true)
     {
-        //Allows to move and rotate camera around with mouse and keyboard; 
-        //Additionally returns pressed keyboard key (SDL_SCANCODE_HOME if none) 
         SDL_Scancode key = camController.update();
 
-        //Render scene to the buffer
         CharEngine::Renderer::render(camera);
-        //Displays buffer on the screen
         CharEngine::Screen::PrintFrame();
 
-        //Calculate framerate
-        //Optional argument controls whether FPS should be printed to the terminal
         fps.tick(false);
-        if (threads > 20) { 
-            if (loop == 0 && mode == "full") {
-                std::cout << "AVX OFF\n";
-                CharEngine::Config::useAVX = false;
+
+        camController.rotate((2.0f * M_PI) / frames, 0.0f);
+
+        if (threads > 20 && mode == "auto") {
+            if (loop == 0 && mode == "auto") {
+                CharEngine::Config::useAVX = !CharEngine::Config::useAVX;
                 loop++;
                 threads = 1;
+                std::cout << "AVX: " << (CharEngine::Config::useAVX ? "ON" : "OFF") << std::endl;
                 CharEngine::Global::pool.resize(threads);
             }
             else {
@@ -130,7 +137,6 @@ int main(int argc, char* argv[])
             }
         }
 
-        //Exit by pressing ESCAPE
         if (key == SDL_SCANCODE_ESCAPE) break;
     }
     file.close();

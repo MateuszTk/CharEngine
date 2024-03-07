@@ -332,7 +332,10 @@ namespace CharEngine {
 			while (SDL_PollEvent(&e) != 0) {
 				if (userControlled) {
 					if (e.type == SDL_EventType::SDL_MOUSEMOTION) {
-						SDL_GetGlobalMouseState(&x, &y);
+						int _x, _y;
+						SDL_GetGlobalMouseState(&_x, &_y);
+						x = _x / 50.0f;
+						y = _y / 50.0f;
 					}
 					if (e.type == SDL_EventType::SDL_MOUSEWHEEL) {
 						camera->dist -= (float)e.wheel.y * 0.5f;
@@ -370,7 +373,7 @@ namespace CharEngine {
 				}
 			}
 
-			camera->angle.UpdateV(y / 50.0f, x / 50.0f, 0);
+			camera->angle.UpdateV(y, x, 0);
 			return key;
 		}
 
@@ -379,16 +382,21 @@ namespace CharEngine {
 			this->y = y;
 		}
 
+		void rotate(float x, float y) {
+			this->x += x;
+			this->y += y;
+		}
+
 	private:
-		int x = 0, y = 180;
+		float x = 0, y = 180;
 		bool userControlled;
 
 #ifdef OPENCV
 		static void mouse_callback(int event, int xm, int ym, int flag, void* param) {
 			Camera* _this = static_cast<Camera*>(param);
 			if (event == EVENT_MOUSEMOVE) {
-				_this->x = xm;
-				_this->y = ym;
+				_this->x = xm / 50.0f;
+				_this->y = ym / 50.0f;
 			}
 			else if (event == EVENT_MOUSEWHEEL) {
 				if (getMouseWheelDelta(flag) > 0)
