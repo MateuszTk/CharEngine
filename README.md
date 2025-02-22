@@ -4,7 +4,7 @@ Features:
 - Textures
 - Transparency
 - Object loading
-- AVX acceleration (Wow!)  
+- AVX acceleration  
 - Multithreaded rendering   
 
 
@@ -26,3 +26,6 @@ Then build with:
 ```cmd
 cl /EHsc /MD /arch:AVX2 /O2 main.cpp /I "SDL2-2.0.14\include" /link /LIBPATH:"SDL2-2.0.14\lib\x86" shell32.lib SDL2.lib SDL2main.lib /SUBSYSTEM:CONSOLE /out:main.exe
 ```
+
+![CharEngine_Car](https://github.com/MateuszTk/CharEngine/blob/master/screenshots/car.jpg?raw=true)   
+![CharEngine_Ship](https://github.com/MateuszTk/CharEngine/blob/master/screenshots/ship.jpg?raw=true)
